@@ -1,0 +1,41 @@
+/* Razorpay Blue Theme - Only for payment pages */
+.razorpay-blue-theme {
+  --color-primary: #2563EB;        /* Blue-600 */
+  --color-primary-light: #3B82F6;  /* Blue-500 */
+  --color-primary-dark: #1D4ED8;   /* Blue-700 */
+  --color-secondary: #60A5FA;      /* Blue-400 */
+  --color-background: #EFF6FF;     /* Blue-50 */
+  --color-card: #FFFFFF;
+  --color-border: #DBEAFE;         /* Blue-100 */
+  --color-ring: #2563EB;
+}
+
+/* Override payment page styles */
+.razorpay-blue-theme .payment-container {
+  background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+}
+
+.razorpay-blue-theme .payment-card {
+  border: 1px solid #DBEAFE;
+  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.1);
+}
+
+.razorpay-blue-theme .payment-button {
+  background: #2563EB;
+  color: white;
+}
+
+.razorpay-blue-theme .payment-button:hover {
+  background: #1D4ED8;
+}
+
+/* Razorpay branded elements */
+.razorpay-blue-theme .razorpay-brand {
+  color: #2563EB;
+}
+
+.razorpay-blue-theme .razorpay-brand::after {
+  content: "®";
+  font-size: 0.7em;
+  color: #3B82F6;
+}

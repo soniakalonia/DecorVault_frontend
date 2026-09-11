@@ -1,0 +1,28 @@
+# .prettierignore
+# Build outputs
+build
+.next
+out
+dist
+coverage
+
+# Dependencies
+node_modules
+
+# Static assets
+public
+
+# Config files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Environment files
+.env*
+
+# Generated files
+*.min.js
+*.min.css
+
+# Logs
+*.log
