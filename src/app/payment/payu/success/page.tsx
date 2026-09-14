@@ -4,7 +4,6 @@ import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useDispatch } from 'react-redux';
 import { syncCart } from '@/store/slices/cart';
-import { useVerifyPayUPaymentMutation } from '@/store/api/payuApi';
 import { useAppDispatch } from '@/lib/hooks/redux';
 import { setPayUSuccess, setPayUFailed } from '@/store/slices/payuPayment';
 
@@ -13,7 +12,6 @@ function PayUSuccessContent() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const rootDispatch = useDispatch();
-  const [verifyPayment, { isLoading }] = useVerifyPayUPaymentMutation();
 
   const [status, setStatus] = useState<'loading' | 'success' | 'failed'>(
     'loading',
@@ -31,13 +29,13 @@ function PayUSuccessContent() {
 
     if (orderIdParam) setOrderId(orderIdParam);
 
-    if (!txnid) {
+    if (!txnid && !orderIdParam) {
       setStatus('failed');
       setMessage('Missing transaction ID. Verification cannot proceed.');
       return;
     }
 
-    // ─── SIMULATED FLOW: skip verify, go straight to success ───
+    // ─── SIMULATED FLOW ───
     if (simulated) {
       setStatus('success');
       setMessage('Your payment was completed successfully (test mode).');
@@ -46,33 +44,71 @@ function PayUSuccessContent() {
       return;
     }
 
-    // ─── REAL FLOW: call verify ───
-    const payload: Record<string, any> = { txnid };
-    searchParams.forEach((value, key) => {
-      payload[key] = value;
-    });
+    // ─── REAL FLOW: fetch payment status from backend DB ───
+    if (!orderIdParam) {
+      setStatus('failed');
+      setMessage('Missing orderId. Cannot confirm payment status.');
+      dispatch(setPayUFailed('Missing orderId'));
+      return;
+    }
 
-    verifyPayment(payload)
-      .unwrap()
-      .then((result) => {
-        if (result.success) {
+    let cancelled = false;
+
+    const checkStatus = async () => {
+      try {
+        const token =
+          typeof window !== 'undefined'
+            ? localStorage.getItem('token')
+            : null;
+
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/payment/payu/status/${orderIdParam}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+          },
+        );
+
+        const data = await res.json().catch(() => ({}));
+
+        if (cancelled) return;
+
+        const paymentStatus =
+          data?.data?.status || data?.data?.paymentStatus || data?.status;
+
+        if (paymentStatus === 'paid' || paymentStatus === 'SUCCESS') {
           setStatus('success');
           setMessage('Your payment was completed successfully.');
           dispatch(setPayUSuccess());
           rootDispatch(syncCart([]));
-        } else {
+        } else if (
+          paymentStatus === 'failed' ||
+          paymentStatus === 'FAILED'
+        ) {
           setStatus('failed');
-          setMessage(result.message || 'Payment verification failed');
-          dispatch(setPayUFailed(result.message || 'Verification failed'));
+          setMessage('Payment failed. Please try again.');
+          dispatch(setPayUFailed('Payment failed'));
+        } else {
+          // pending — poll once more after 2s
+          setTimeout(checkStatus, 2000);
         }
-      })
-      .catch((error) => {
+      } catch (err: any) {
+        if (cancelled) return;
         setStatus('failed');
-        const msg =
-          error.data?.message || error.message || 'Verification error';
+        const msg = err?.message || 'Could not fetch payment status';
         setMessage(msg);
         dispatch(setPayUFailed(msg));
-      });
+      }
+    };
+
+    checkStatus();
+
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
@@ -81,21 +117,21 @@ function PayUSuccessContent() {
     if (status !== 'success') return;
 
     const timer = setInterval(() => {
-      setCountdown((c) => {
-        if (c <= 1) {
-          clearInterval(timer);
-          router.push('/');
-          return 0;
-        }
-        return c - 1;
-      });
+      setCountdown((c) => (c <= 1 ? 0 : c - 1));
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [status, router]);
+  }, [status]);
+
+  // Separate effect: navigate when countdown hits 0
+  useEffect(() => {
+    if (status === 'success' && countdown === 0) {
+      router.push('/');
+    }
+  }, [countdown, status, router]);
 
   // ─── Confirming ───
-  if (status === 'loading' || isLoading) {
+  if (status === 'loading') {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-[#FAFAFA]">
         <div className="w-16 h-16 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin"></div>
@@ -103,7 +139,7 @@ function PayUSuccessContent() {
           Confirming your payment...
         </p>
         <p className="text-sm text-[#6B7280]">
-          Please wait while we verify the transaction with PayU.
+          Please wait while we confirm the transaction.
         </p>
       </div>
     );
@@ -158,13 +194,7 @@ function PayUSuccessContent() {
           <span className="font-semibold text-[#D4AF37]">{countdown}s</span>...
         </p>
 
-        <div className="mt-4 flex gap-3">
-          <button
-            onClick={() => router.push(`/orders/${orderId}`)}
-            className="px-6 py-2 bg-[#D4AF37] text-white rounded-lg hover:bg-[#C5A035] transition"
-          >
-            View Order
-          </button>
+        <div className="mt-4">
           <button
             onClick={() => router.push('/')}
             className="px-6 py-2 border border-[#D4AF37] text-[#D4AF37] rounded-lg hover:bg-[#FFF8F0] transition"
