@@ -23,7 +23,7 @@ const NewsletterSignup = () => {
       <div className="container mx-auto px-4">
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="font-heading text-2xl md:text-3xl font-bold text-white">
-            Sign Up & Get Upto ₹1,500 off on Your First Purchase!
+            Sign Up & Get Your First Purchase!
           </h2>
           <p className="text-white/70 mt-2 text-sm md:text-base">
             Get exclusive access to new collections, early sales, and design inspiration

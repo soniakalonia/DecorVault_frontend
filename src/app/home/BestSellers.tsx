@@ -16,7 +16,7 @@ const bestSellers: BestSeller[] = [
   {
     id: 1,
     title: 'Table Vases',
-    options: '600+ Options',
+    options: '10+ Options',
     price: 'Starting at Just Rs. 249',
     image: '/assets/images/bestsellers/bestseller-vases.jpg',
     link: '/products/vases',
@@ -24,7 +24,7 @@ const bestSellers: BestSeller[] = [
   {
     id: 2,
     title: 'Pots and Planters',
-    options: '1000+ Options',
+    options: '10+ Options',
     price: 'Starting at Just Rs. 199',
     image: '/assets/images/bestsellers/bestseller-planters.jpg',
     link: '/products/planters',
@@ -32,7 +32,7 @@ const bestSellers: BestSeller[] = [
   {
     id: 3,
     title: 'Candles',
-    options: '400+ Options',
+    options: '10+ Options',
     price: 'Starting at Just Rs. 119',
     image: '/assets/images/bestsellers/bestseller-candles.jpg',
     link: '/products/candles',
@@ -40,7 +40,7 @@ const bestSellers: BestSeller[] = [
   {
     id: 4,
     title: 'Wall Art and Paintings',
-    options: '5000+ Options',
+    options: '10+ Options',
     price: 'Starting at Just Rs. 199',
     image: '/assets/images/bestsellers/bestseller-wall-art.jpg',
     link: '/products/wall-art',
@@ -48,7 +48,7 @@ const bestSellers: BestSeller[] = [
   {
     id: 5,
     title: 'Table Decor and Accents',
-    options: '600+ Options',
+    options: '10+ Options',
     price: 'Starting at Just Rs. 299',
     image: '/assets/images/bestsellers/bestseller-table-decor.jpg',
     link: '/products/table-decor',
@@ -56,7 +56,7 @@ const bestSellers: BestSeller[] = [
   {
     id: 6,
     title: 'Wall Shelves',
-    options: '600+ Options',
+    options: '10+ Options',
     price: 'Starting at Just Rs. 499',
     image: '/assets/images/bestsellers/bestseller-shelves.jpg',
     link: '/products/shelves',

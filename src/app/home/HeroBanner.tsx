@@ -40,7 +40,7 @@ const HeroBanner = () => {
             {/* Offer */}
             <div className="mt-3">
               <p className="text-2xl md:text-3xl font-bold text-[#D4AF37]">
-                Upto 70% Off + 20% Cashback
+                Upto 50% Off 
               </p>
               <p className="text-[#7A7A7A] text-sm mt-1">*T&C Apply</p>
             </div>
@@ -48,7 +48,7 @@ const HeroBanner = () => {
             {/* Extra Offer */}
             <div className="mt-4 inline-block bg-[#F5F0EB] border border-[#D4AF37]/30 rounded-lg px-4 py-2">
               <p className="text-[#1A1A2E] font-semibold text-sm">
-                EXTRA 15% OFF* <span className="text-[#7A7A7A] font-normal">On All Home Decor</span>
+                EXTRA 5% OFF* <span className="text-[#7A7A7A] font-normal">On All Home Decor</span>
               </p>
             </div>
 
@@ -64,7 +64,7 @@ const HeroBanner = () => {
 
             {/* Sign Up Offer */}
             <p className="text-[#7A7A7A] text-xs mt-4">
-              Sign Up & Get Upto ₹1,500 off on Your First Purchase!
+              Sign Up & Get  Your First Purchase!
             </p>
           </div>
 

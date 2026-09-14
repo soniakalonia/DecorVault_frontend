@@ -6,7 +6,7 @@ import Image from 'next/image';
 interface Deal {
   id: number;
   title: string;
-  discount: string;
+ // discount: string;
   image: string;
   link: string;
 }
@@ -15,14 +15,13 @@ const deals: Deal[] = [
   {
     id: 1,
     title: 'Artificial Plants & Flowers',
-    discount: 'Upto 70% Off',
+   
     image: '/assets/images/deals/deal-plants.jpg',
     link: '/products/plants',
   },
   {
     id: 2,
     title: 'Home Fragrances',
-    discount: 'Upto 60% Off',
     image: '/assets/images/deals/deal-fragrances.jpg',
     link: '/products/fragrances',
   },
