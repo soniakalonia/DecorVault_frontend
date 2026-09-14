@@ -133,3 +133,95 @@ export interface WebhookStatsResponse {
     unique_events: number;
   };
 }
+
+// ─────────────────────────────────────────────────────────
+// PayU types
+// ─────────────────────────────────────────────────────────
+
+export interface PayUFormFields {
+  key: string;
+  txnid: string;
+  amount: string;
+  productinfo: string;
+  firstname: string;
+  email: string;
+  phone: string;
+  surl: string;
+  furl: string;
+  hash: string;
+  udf1: string;
+  udf2: string;
+  udf3: string;
+  udf4: string;
+  udf5: string;
+  service_provider: string;
+}
+
+export interface PayUInitiateRequest {
+  orderId: number;
+  amount: number;
+  currency?: string | undefined;
+  productInfo?: string | undefined;
+}
+
+export interface PayUInitiateResponse {
+  success: boolean;
+  data: {
+    paymentId: number;
+    txnid: string;
+    payuForm: {
+      action: string;
+      method: string;
+      fields: PayUFormFields;
+    };
+  };
+  message: string;
+}
+
+export interface PayUVerifyRequest {
+  txnid?: string | undefined;
+  mihpayid?: string | undefined;
+  status?: string | undefined;
+  amount?: string | undefined;
+  hash?: string | undefined;
+  [key: string]: any;
+}
+
+export interface PayUVerifyResponse {
+  success: boolean;
+  data: {
+    paymentId: number;
+    orderId: number;
+    mihpayid: string;
+    status: string;
+  };
+  message: string;
+}
+
+export interface PayUStatusResponse {
+  success: boolean;
+  data: {
+    payment: any;
+    payuTransactions: any[];
+    status: string;
+  };
+}
+
+export interface PayUSimulateRequest {
+  orderId?: number | undefined;
+  txnid?: string | undefined;
+  status: 'success' | 'failure';
+}
+
+export interface PayUSimulateResponse {
+  success: boolean;
+  message: string;
+  data: {
+    paymentId?: number;
+    orderId: number;
+    txnid: string;
+    mihpayid: string;
+    status: 'success' | 'failure';
+    redirectUrl: string;
+  };
+}

@@ -10,6 +10,11 @@ export const config = {
     clientId: process.env.NEXT_PUBLIC_SETU_CLIENT_ID || '',
     baseUrl: process.env.NEXT_PUBLIC_SETU_BASE_URL || '',
   },
+    payu: {
+    // Mostly handled by backend — kept here for reference / future use
+    merchantKey: process.env.NEXT_PUBLIC_PAYU_MERCHANT_KEY || '',
+    mode: process.env.NEXT_PUBLIC_PAYU_MODE || 'TEST',
+  },
   payment: {
     successUrl: process.env.NEXT_PUBLIC_PAYMENT_SUCCESS_URL || '/payment/success',
     failureUrl: process.env.NEXT_PUBLIC_PAYMENT_FAILURE_URL || '/payment/failure',

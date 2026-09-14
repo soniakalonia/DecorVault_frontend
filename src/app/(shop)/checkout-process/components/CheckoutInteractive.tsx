@@ -14,6 +14,8 @@ import PaymentMethodSelector from './PaymentMethodSelector';
 import OrderReviewSection from './OrderReviewSection';
 import CheckoutProgress from './CheckoutProgress';
 import { toast } from 'react-toastify';
+import { useInitiatePayUPaymentMutation } from '@/store/api/payuApi';
+import PayUPaymentForm from '@/components/payment/PayUPaymentForm';
 
 interface Address {
     id: string;
@@ -45,6 +47,12 @@ const CheckoutInteractive = () => {
     const [createOrder, { isLoading: isPlacingOrder }] = useCreateOrderMutation();
     const [initiatePayment] = useInitiatePaymentMutation();
     const [initiateSetuPayment] = useInitiateSetuPaymentMutation();
+
+    const [initiatePayUPayment] = useInitiatePayUPaymentMutation();
+    const [payuForm, setPayuForm] = useState<{
+        action: string;
+        fields: any;
+    } | null>(null);
 
     useEffect(() => {
         setIsHydrated(true);
@@ -172,6 +180,26 @@ const CheckoutInteractive = () => {
                     window.location.href = result.data.paymentLink;
                 } else {
                     throw new Error(result.message || 'Setu payment initiation failed');
+                }
+            }
+            else if (selectedPaymentMethod === 'payu') {
+                setIsProcessingPayment(true);
+                const result = await initiatePayUPayment({
+                    orderId,
+                    amount: total,
+                    currency: 'INR',
+                }).unwrap();
+
+                if (result.success && result.data.payuForm) {
+                    // Store form data — PayUPaymentForm will auto-submit on mount
+                    setPayuForm({
+                        action: result.data.payuForm.action,
+                        fields: result.data.payuForm.fields,
+                    });
+                    // Note: do NOT reset isProcessingPayment here — the
+                    // redirect will unmount this component anyway.
+                } else {
+                    throw new Error(result.message || 'PayU payment initiation failed');
                 }
             }
             else {
@@ -326,6 +354,7 @@ const CheckoutInteractive = () => {
                                             <p className="font-medium text-foreground">
                                                 {selectedPaymentMethod === 'razorpay' && 'Razorpay (Card/UPI/Net Banking)'}
                                                 {selectedPaymentMethod === 'setu' && 'Setu (UPI / QR)'}
+                                                {selectedPaymentMethod === 'payu' && 'PayU (Cards / UPI / Net Banking / Wallet)'}
                                                 {selectedPaymentMethod === 'cod' && 'Cash on Delivery'}
                                             </p>
                                             <button
@@ -379,6 +408,7 @@ const CheckoutInteractive = () => {
                                                         {selectedPaymentMethod === 'cod' && 'Place Order'}
                                                         {selectedPaymentMethod === 'razorpay' && 'Pay & Place Order'}
                                                         {selectedPaymentMethod === 'setu' && 'Pay with Setu'}
+                                                        {selectedPaymentMethod === 'payu' && 'Pay with PayU'}
                                                     </span>
                                                 </>
                                             )}
@@ -448,10 +478,16 @@ const CheckoutInteractive = () => {
                     </div>
                 </>
             )}
+
+            {/* Hidden PayU form — auto-submits when populated */}
+            {payuForm && (
+                <PayUPaymentForm
+                    action={payuForm.action}
+                    fields={payuForm.fields}
+                />
+            )}
         </div>
     );
 };
 
 export default CheckoutInteractive;
-
-

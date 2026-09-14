@@ -73,12 +73,6 @@ const FilterPanel = ({ onFilterChange, productCount, initialFilters }: FilterPan
     onFilterChange(newFilters);
   };
 
-  const updateCapacityRange = (min: number, max: number) => {
-    const newFilters = { ...filters, capacityRange: [min, max] as [number, number] };
-    setFilters(newFilters);
-    onFilterChange(newFilters);
-  };
-
   const updatePriceRange = (min: number, max: number) => {
     const newFilters = { ...filters, priceRange: [min, max] as [number, number] };
     setFilters(newFilters);
@@ -192,36 +186,10 @@ const FilterPanel = ({ onFilterChange, productCount, initialFilters }: FilterPan
         )}
       </div>
 
-      {/* Capacity Range */}
+      {/* Price Range (Lowest to Highest) */}
       <div className="space-y-3">
         <h3 className="text-sm font-medium text-foreground">
-          Capacity (ml)
-        </h3>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <input
-              type="number"
-              value={filters.capacityRange[0]}
-              onChange={(e) => updateCapacityRange(Number(e.target.value), filters.capacityRange[1])}
-              className="w-24 rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground"
-              placeholder="Min"
-            />
-            <span className="text-muted-foreground">-</span>
-            <input
-              type="number"
-              value={filters.capacityRange[1]}
-              onChange={(e) => updateCapacityRange(filters.capacityRange[0], Number(e.target.value))}
-              className="w-24 rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground"
-              placeholder="Max"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Price Range */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-medium text-foreground">
-          Price (₹)
+          Price Range (₹)
         </h3>
         <div className="space-y-2">
           <div className="flex items-center justify-between">
@@ -241,6 +209,9 @@ const FilterPanel = ({ onFilterChange, productCount, initialFilters }: FilterPan
               placeholder="Max"
             />
           </div>
+          <p className="caption text-muted-foreground">
+            Filter products by price range
+          </p>
         </div>
       </div>
     </div>
@@ -248,6 +219,3 @@ const FilterPanel = ({ onFilterChange, productCount, initialFilters }: FilterPan
 };
 
 export default FilterPanel;
-
-
-

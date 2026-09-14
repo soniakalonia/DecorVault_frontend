@@ -6,6 +6,7 @@ import bulkOrderSlice from './slices/bulkOrder'
 import wishlistSlice from './slices/wishlist'
 import paymentSlice from './slices/payment'
 import setuPaymentSlice from './slices/setuPayment'
+import payuPaymentSlice from './slices/payuPayment'
 
 import { baseApi } from './api/baseApi'
 import { blogApi } from './api/blogApi'
@@ -21,6 +22,7 @@ export const store = configureStore({
     wishlist: wishlistSlice,
     payment: paymentSlice,
     setuPayment: setuPaymentSlice,
+    payuPayment: payuPaymentSlice,
     [baseApi.reducerPath]: baseApi.reducer,
     [blogApi.reducerPath]: blogApi.reducer,
     [orderApi.reducerPath]: orderApi.reducer,
