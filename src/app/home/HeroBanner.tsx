@@ -5,23 +5,23 @@ import Link from 'next/link';
 
 const HeroBanner = () => {
   return (
-    <section className="relative w-full overflow-hidden bg-white">
-      {/* Leaf Pattern Overlay - SVG Background */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none">
-        <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-          <pattern id="leafPattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-            <path 
-              d="M10 0 C10 5 5 10 0 10 C5 10 10 15 10 20 C10 15 15 10 20 10 C15 10 10 5 10 0Z" 
-              fill="#D4AF37" 
-              opacity="0.3"
-            />
-          </pattern>
-          <rect width="100" height="100" fill="url(#leafPattern)" />
-        </svg>
+    <section className="relative w-full overflow-hidden bg-white min-h-[420px] md:min-h-[480px] lg:min-h-[520px]">
+      {/* Background Image - Full Section */}
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/assets/images/hero/background.png"
+          alt="Hero Background"
+          fill
+          className="object-cover object-center"
+          priority
+          quality={90}
+        />
+        {/* Soft white gradient overlay on left for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-r from-white/85 via-white/60 to-transparent md:from-white/80 md:via-white/40 md:to-transparent" />
       </div>
 
       {/* Decorative Gold Line */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#D4AF37] via-[#F7C948] to-[#D4AF37]"></div>
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#D4AF37] via-[#F7C948] to-[#D4AF37] z-20"></div>
 
       <div className="container mx-auto px-4 py-8 md:py-12 relative z-10">
         <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10">
@@ -40,7 +40,7 @@ const HeroBanner = () => {
             {/* Offer */}
             <div className="mt-3">
               <p className="text-2xl md:text-3xl font-bold text-[#D4AF37]">
-                Upto 50% Off 
+                Upto 50% Off
               </p>
               <p className="text-[#7A7A7A] text-sm mt-1">*T&C Apply</p>
             </div>
@@ -64,34 +64,21 @@ const HeroBanner = () => {
 
             {/* Sign Up Offer */}
             <p className="text-[#7A7A7A] text-xs mt-4">
-              Sign Up & Get  Your First Purchase!
+              Sign Up & Get Your First Purchase!
             </p>
           </div>
 
-          {/* Right Side - Two Images Side by Side */}
-          <div className="flex-1 max-w-2xl">
-            <div className="flex flex-row items-center gap-4 md:gap-6 justify-center">
-              {/* Image 1 - Flower */}
-              <div className="relative w-1/2 aspect-square rounded-2xl overflow-hidden hover:scale-105 transition-transform duration-300">
-                <Image
-                  src="/assets/images/hero/flower-gold.jpg"
-                  alt="Golden Flower"
-                  fill
-                  className="object-cover"
-                  priority
-                />
-              </div>
-
-              {/* Image 2 - Mirror */}
-              <div className="relative w-1/2 aspect-square rounded-2xl overflow-hidden hover:scale-105 transition-transform duration-300">
-                <Image
-                  src="/assets/images/hero/mirror-ornate.jpg"
-                  alt="Ornate Mirror"
-                  fill
-                  className="object-cover"
-                  priority
-                />
-              </div>
+          {/* Right Side - Single Lamp Image aligned to platform */}
+          <div className="flex-1 max-w-2xl relative flex items-end justify-center">
+            <div className="relative w-full aspect-[3/2] translate-y-12 md:translate-y-20 lg:translate-y-6">
+              <Image
+                src="/assets/images/hero/lamp.png"
+                alt="Featured Lamp"
+                fill
+                className="object-contain object-bottom"
+                priority
+                quality={90}
+              />
             </div>
           </div>
         </div>
@@ -101,3 +88,4 @@ const HeroBanner = () => {
 };
 
 export default HeroBanner;
+

@@ -69,8 +69,8 @@ const ContactInteractive = () => {
               </div>
               <h3 className="mb-2 font-semibold text-[#1A1A2E]">Call Us</h3>
               <p className="text-sm text-[#7A7A7A] mb-2">Mon-Sat: 10 AM - 7 PM</p>
-              <a href="tel:+919810092418" className="text-[#D4AF37] hover:underline font-medium">
-                +91 98100 92418
+              <a href="tel:+919582791995" className="text-[#D4AF37] hover:underline font-medium">
+                +91 95827 91995
               </a>
             </div>
 
@@ -93,28 +93,28 @@ const ContactInteractive = () => {
               </div>
               <h3 className="mb-2 font-semibold text-[#1A1A2E]">Visit Us</h3>
               <p className="text-sm text-[#7A7A7A]">
-                DecorVault Headquarters<br />
-                Plot No. 53, Murad Nagar Ind. Area<br />
-                Abupur, Ghaziabad (UP) – 201206
+                DecorVault by Weftalix Pvt Ltd<br />
+                H No. 9/149, Shyam Block, Kailash Nagar<br />
+                Gandhi Nagar, New Delhi – 110031
               </p>
             </div>
 
-            {/* Social Media */}
+            {/* Company Info Card (replaces Follow Us) */}
             <div className="rounded-lg border border-[#E8E4E0] bg-white p-4 shadow-sm">
-              <h3 className="mb-4 font-semibold text-[#1A1A2E]">Follow Us</h3>
-              <div className="flex space-x-3">
-                <a href="#" className="flex h-10 w-10 items-center justify-center rounded-md bg-[#F5F0EB] transition-smooth hover:bg-[#D4AF37] hover:text-[#1A1A2E]">
-                  <Icon name="ShareIcon" size={20} />
-                </a>
-                <a href="#" className="flex h-10 w-10 items-center justify-center rounded-md bg-[#F5F0EB] transition-smooth hover:bg-[#D4AF37] hover:text-[#1A1A2E]">
-                  <Icon name="CameraIcon" size={20} />
-                </a>
-                <a href="#" className="flex h-10 w-10 items-center justify-center rounded-md bg-[#F5F0EB] transition-smooth hover:bg-[#D4AF37] hover:text-[#1A1A2E]">
-                  <Icon name="ChatBubbleLeftRightIcon" size={20} />
-                </a>
-                <a href="#" className="flex h-10 w-10 items-center justify-center rounded-md bg-[#F5F0EB] transition-smooth hover:bg-[#D4AF37] hover:text-[#1A1A2E]">
-                  <Icon name="BuildingOfficeIcon" size={20} />
-                </a>
+              <h3 className="mb-4 font-semibold text-[#1A1A2E]">Company Info</h3>
+              <div className="space-y-3 text-sm">
+                <div>
+                  <p className="text-[#7A7A7A]">Managed By</p>
+                  <p className="font-semibold text-[#1A1A2E]">Weftalix Private Limited</p>
+                </div>
+                <div>
+                  <p className="text-[#7A7A7A]">Founded</p>
+                  <p className="font-semibold text-[#1A1A2E]">23 December 2025</p>
+                </div>
+                <div>
+                  <p className="text-[#7A7A7A]">Constitution</p>
+                  <p className="font-semibold text-[#1A1A2E]">Private Limited Company</p>
+                </div>
               </div>
             </div>
           </div>

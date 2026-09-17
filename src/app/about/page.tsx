@@ -6,14 +6,14 @@ import Icon from '@/components/ui/AppIcon';
 export const metadata: Metadata = {
   title: 'About Us - DecorVault | Premium Home Decor & Gifts',
   description:
-    'Discover DecorVault — your destination for premium home decor, candles, clocks, photo frames, gift items, and curated home accessories. Quality products for beautiful living spaces.',
+    'Discover DecorVault — your destination for premium home decor, candles, clocks, photo frames, gift items, and curated home accessories. Managed by Weftalix Private Limited.',
 };
 
 const stats = [
-  { label: 'Years in Business', value: '8+' },
   { label: 'Products in Range', value: '500+' },
   { label: 'Happy Customers', value: '25,000+' },
   { label: 'Cities Delivered', value: '75+' },
+  { label: 'Curated Categories', value: '8+' },
 ];
 
 const values = [
@@ -41,24 +41,24 @@ const values = [
 
 const timeline = [
   {
-    year: '2018',
+    year: '2025',
     title: 'The Beginning',
-    desc: 'DecorVault was founded with a simple vision — to make beautiful home decor accessible to everyone. Started with a small collection of candles and photo frames.',
+    desc: 'DecorVault was founded on 23 December 2025 under Weftalix Private Limited with a simple vision — to make beautiful home decor accessible to everyone.',
   },
   {
-    year: '2020',
+    year: '2026',
     title: 'Expanded Collections',
-    desc: 'Grew our product range to include clocks, vases, wall decor, and gift items. Became a one-stop destination for home decor lovers.',
+    desc: 'Grew our product range to include candles, clocks, photo frames, vases, wall decor, and gift items. Became a one-stop destination for home decor lovers.',
   },
   {
-    year: '2022',
+    year: '2026+',
     title: 'Pan-India Reach',
     desc: 'Partnered with trusted logistics partners to deliver across 75+ cities. Thousands of homes now enjoy our curated collections.',
   },
   {
-    year: '2024',
+    year: 'Future',
     title: 'Premium Collections',
-    desc: 'Launched luxury collections including premium candles, designer photo frames, and exclusive gift hampers. Elevated the home decor experience.',
+    desc: 'Launching luxury collections including premium candles, designer photo frames, and exclusive gift hampers to elevate the home decor experience.',
   },
 ];
 
@@ -80,7 +80,6 @@ export default function AboutPage() {
       {/* Hero Section */}
       <div className="bg-gradient-to-br from-[#1A1A2E]/5 via-[#D4AF37]/10 to-[#FAFAFA] py-12 sm:py-16">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 text-center">
-          {/* ✅ Logo - Updated with actual image */}
           <div className="mb-4 flex items-center justify-center gap-3">
             <div className="w-14 h-14 rounded-xl flex items-center justify-center shadow-md overflow-hidden bg-white p-1">
               <Image
@@ -99,8 +98,8 @@ export default function AboutPage() {
             Our Story
           </h1>
           <p className="mt-5 text-lg text-[#7A7A7A] leading-relaxed max-w-2xl mx-auto">
-            From a small passion project to thousands of beautiful homes across India — 
-            DecorVault is your destination for premium home decor, candles, clocks, 
+            From a small passion project to thousands of beautiful homes across India —
+            DecorVault is your destination for premium home decor, candles, clocks,
             photo frames, and curated gift items.
           </p>
           <p className="mt-3 text-base font-semibold text-[#D4AF37]">
@@ -131,18 +130,20 @@ export default function AboutPage() {
               Who We Are
             </h2>
             <p className="mt-4 text-[#7A7A7A] leading-relaxed">
-              DecorVault is a premium home decor brand dedicated to curating the finest 
-              collection of decorative items for your home. From elegant candles and 
-              stylish clocks to beautiful photo frames and thoughtful gift items — 
+              DecorVault is a premium home decor brand dedicated to curating the finest
+              collection of decorative items for your home. From elegant candles and
+              stylish clocks to beautiful photo frames and thoughtful gift items —
               we bring you quality products that make your space truly special.
             </p>
             <p className="mt-4 text-[#7A7A7A] leading-relaxed">
-              We believe that every home tells a story. Our carefully curated collections 
-              help you tell yours — with pieces that reflect your personality, style, 
-              and the love you pour into your living space.
+              <strong className="text-[#1A1A2E]">DecorVault is managed and handled by Weftalix Private Limited</strong>,
+              a Private Limited Company incorporated on <strong className="text-[#1A1A2E]">23 December 2025</strong>.
+              We believe that every home tells a story, and our carefully curated
+              collections help you tell yours — with pieces that reflect your
+              personality, style, and the love you pour into your living space.
             </p>
             <p className="mt-4 text-[#7A7A7A] leading-relaxed">
-              Whether you're looking to refresh your decor, find the perfect gift, or 
+              Whether you're looking to refresh your decor, find the perfect gift, or
               discover something unique for your home — DecorVault is here to inspire you.
             </p>
           </div>
@@ -153,11 +154,19 @@ export default function AboutPage() {
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <p className="text-[#7A7A7A]">Founded</p>
-                <p className="font-semibold text-[#1A1A2E]">2018</p>
+                <p className="font-semibold text-[#1A1A2E]">23 Dec 2025</p>
               </div>
               <div>
                 <p className="text-[#7A7A7A]">Type</p>
                 <p className="font-semibold text-[#1A1A2E]">Premium Home Decor</p>
+              </div>
+              <div>
+                <p className="text-[#7A7A7A]">Managed By</p>
+                <p className="font-semibold text-[#1A1A2E]">Weftalix Pvt Ltd</p>
+              </div>
+              <div>
+                <p className="text-[#7A7A7A]">Constitution</p>
+                <p className="font-semibold text-[#1A1A2E]">Private Limited</p>
               </div>
               <div>
                 <p className="text-[#7A7A7A]">Industry</p>
@@ -167,9 +176,12 @@ export default function AboutPage() {
                 <p className="text-[#7A7A7A]">Products</p>
                 <p className="font-semibold text-[#1A1A2E]">500+ Curated Items</p>
               </div>
-              <div>
-                <p className="text-[#7A7A7A]">Location</p>
-                <p className="font-semibold text-[#1A1A2E]">Ghaziabad, UP – 201206</p>
+              <div className="col-span-2">
+                <p className="text-[#7A7A7A]">Registered Address</p>
+                <p className="font-semibold text-[#1A1A2E] leading-snug">
+                  H No. 9/149, Shyam Block, Kailash Nagar,<br />
+                  Gandhi Nagar, New Delhi – 110031
+                </p>
               </div>
               <div>
                 <p className="text-[#7A7A7A]">Delivery</p>
@@ -178,6 +190,12 @@ export default function AboutPage() {
               <div>
                 <p className="text-[#7A7A7A]">Speciality</p>
                 <p className="font-semibold text-[#1A1A2E]">Candles, Clocks, Frames</p>
+              </div>
+              <div>
+                <p className="text-[#7A7A7A]">Phone</p>
+                <a href="tel:+919582791995" className="font-semibold text-[#D4AF37] hover:underline">
+                  +91 95827 91995
+                </a>
               </div>
               <div>
                 <p className="text-[#7A7A7A]">Orders</p>
@@ -242,7 +260,6 @@ export default function AboutPage() {
               key={item.year}
               className={`relative flex gap-6 sm:gap-0 ${i % 2 === 0 ? 'sm:flex-row' : 'sm:flex-row-reverse'}`}
             >
-              {/* Content */}
               <div className={`flex-1 pl-14 sm:pl-0 ${i % 2 === 0 ? 'sm:pr-12 sm:text-right' : 'sm:pl-12'}`}>
                 <div className="rounded-lg border border-[#E8E4E0] bg-white p-4 shadow-sm">
                   <span className="text-xs font-bold text-[#D4AF37] uppercase tracking-wide">{item.year}</span>
@@ -250,7 +267,6 @@ export default function AboutPage() {
                   <p className="mt-1 text-sm text-[#7A7A7A]">{item.desc}</p>
                 </div>
               </div>
-              {/* Dot */}
               <div className="absolute left-3.5 top-4 flex h-4 w-4 items-center justify-center rounded-full bg-[#D4AF37] ring-4 ring-[#FAFAFA] sm:left-[calc(50%-8px)]" />
             </div>
           ))}
@@ -299,7 +315,7 @@ export default function AboutPage() {
             Find Your Perfect Decor
           </h2>
           <p className="mt-3 text-white/70 leading-relaxed">
-            Looking for something special? Browse our curated collection of premium home decor, 
+            Looking for something special? Browse our curated collection of premium home decor,
             candles, clocks, photo frames, and gift items.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">

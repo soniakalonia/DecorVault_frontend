@@ -17,9 +17,10 @@ interface OrderActionsProps {
 // Company Details
 const COMPANY_DETAILS = {
   name: 'DECOR VAULT',
-  address: '123, BKC Complex, Bandra East, Mumbai - 400051',
+  
+  address: 'H No. 9/149, Shyam Block, Kailash Nagar, Gandhi Nagar, New Delhi - 110031',
   email: 'support@decorvault.online',
-  phone: '+91 98765 43210',
+  phone: '++91 95827 91995',
   gstin: '27AABCZ1234D1ZP',
   cin: 'U74999MH2020PTC345678',
   logoUrl: '/assets/images/logo.png',
