@@ -1,30 +1,32 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useRouter } from 'next/navigation';
 import CartItem from './CartItem';
 import OrderSummary from './OrderSummary';
 import RelatedProducts from './RelatedProducts';
 import EmptyCart from './EmptyCart';
 import ClearCartModal from './ClearCartModal';
 import Icon from '@/components/ui/AppIcon';
+import {
+  useGetCartQuery,
+  useRemoveFromCartMutation,
+  useClearCartMutation,
+  useUpdateCartMutation,
+} from '@/store/api/cartApi';
+import { useGetProductsQuery } from '@/store/api/productsApi';
+import { clearCart, removeItem, updateQuantity, syncCart } from '@/store/slices/cart';
 import type { RootState } from '@/store/store';
-import { removeItem, updateQuantity, clearCart } from '@/store/slices/cart';
 
 interface RelatedProduct {
   id: string;
-  slug: string;
   name: string;
-  category: string;
   image: string;
   alt: string;
   price: number;
   originalPrice: number;
-  discount: number;
   rating: number;
-  reviews?: number;
-  packingStandard?: string;
+  reviews: number;
 }
 
 interface RecentProduct {
@@ -35,129 +37,177 @@ interface RecentProduct {
   price: number;
 }
 
+function extractFirstImage(product: any): string {
+  const raw = product?.product_images ?? product?.image ?? product?.images ?? '';
+  if (!raw) return '';
+  if (Array.isArray(raw)) return raw[0] || '';
+  if (typeof raw === 'string') {
+    const trimmed = raw.trim();
+    if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) return parsed[0] || '';
+        if (typeof parsed === 'string') return parsed;
+      } catch {
+        return raw;
+      }
+    }
+    return raw;
+  }
+  return '';
+}
+
 export default function ShoppingCartInteractive() {
   const dispatch = useDispatch();
-  const router = useRouter();
   const [isHydrated, setIsHydrated] = useState(false);
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
 
-  // Get cart items from Redux store
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
   const cartItems = useSelector((state: RootState) => state.cart.items);
   const totalItems = useSelector((state: RootState) => state.cart.itemCount);
 
+  const { data: cartData } = useGetCartQuery(undefined, {
+    skip: !isAuthenticated,
+  });
+
+  // Live products from API — no hardcoding
+  const { data: productsData } = useGetProductsQuery({ limit: 8 });
+
+  const [removeFromCart] = useRemoveFromCartMutation();
+  const [clearCartMutation] = useClearCartMutation();
+  const [updateCart] = useUpdateCartMutation();
+
   useEffect(() => {
     setIsHydrated(true);
-  }, [cartItems, totalItems]);
+  }, []);
 
-  // Related Products
-  const relatedProducts: RelatedProduct[] = [
-    {
-      id: 'rp1',
-      slug: 'modern-wall-clock',
-      name: 'Modern Wall Clock - Gold Finish',
-      category: 'Clocks',
-      image: '/assets/images/products/clock/clock-1.jpg',
-      alt: 'Sleek modern wall clock with metal frame',
-      price: 999,
-      originalPrice: 1299,
-      discount: 23,
-      rating: 4.5,
-      reviews: 128,
-    },
-    {
-      id: 'rp2',
-      slug: 'photo-frame-gift-box',
-      name: 'Photo Frame Gift Box',
-      category: 'Gift Items',
-      image: '/assets/images/products/gifts/gift-4.jpg',
-      alt: 'Elegant photo frame gift box with candle and card',
-      price: 1199,
-      originalPrice: 1499,
-      discount: 20,
-      rating: 4.7,
-      reviews: 245,
-    },
-    {
-      id: 'rp3',
-      slug: 'peace-lily-plant',
-      name: 'Indoor Plant - Peace Lily',
-      category: 'Indoor Plants',
-      image: '/assets/images/products/plants/plant-4.jpg',
-      alt: 'Beautiful peace lily with white flowers',
-      price: 599,
-      originalPrice: 749,
-      discount: 20,
-      rating: 4.3,
-      reviews: 89,
-    },
-    {
-      id: 'rp4',
-      slug: 'premium-perfume-gift-set',
-      name: 'Premium Perfume Gift Set',
-      category: 'Fragrances',
-      image: '/assets/images/products/Fragnances/fragrance-1.jpg',
-      alt: 'Premium perfume gift set with 3 fragrances',
-      price: 1999,
-      originalPrice: 2499,
-      discount: 20,
-      rating: 4.6,
-      reviews: 312,
-    },
-  ];
+  useEffect(() => {
+    if (cartData?.success && Array.isArray(cartData.data)) {
+      const items = cartData.data.map((item: any) => {
+        let images: any[] = [];
+        try {
+          images =
+            typeof item.product_images === 'string'
+              ? JSON.parse(item.product_images)
+              : item.product_images || [];
+        } catch {
+          images = [];
+        }
 
-  const recentProducts: RecentProduct[] = [
-    {
-      id: '9',
-      name: 'Vintage Wooden Wall Clock',
-      image: '/assets/images/products/clock/clock-2.jpg',
-      alt: 'Beautiful vintage wooden wall clock with roman numerals',
-      price: 1999,
-    },
-    {
-      id: '10',
-      name: 'Modern Ceramic Vase',
-      image: '/assets/images/products/vases/vase-1.jpg',
-      alt: 'Elegant modern ceramic vase with matte finish',
-      price: 999,
-    },
-  ];
+        return {
+          id:
+            item.variant_id && item.variant_id !== 'default'
+              ? item.variant_id.toString()
+              : item.product_id?.toString() || item.id?.toString() || 'unknown',
+          recordId: item.id,
+          name: item.name,
+          image: Array.isArray(images) ? images[0] || '' : '',
+          price: Number(item.discount_price ?? item.price) || 0,
+          originalPrice: item.price ? Number(item.price) : undefined,
+          quantity: Number(item.quantity) || 1,
+          variant:
+            item.variant_id && item.variant_id !== 'default'
+              ? item.variant_id
+              : undefined,
+          packingStandard: item.packing_standard || undefined,
+        };
+      });
+      items.sort((a: any, b: any) => (b.recordId ?? 0) - (a.recordId ?? 0));
 
-  const handleQuantityChange = (id: string, newQuantity: number) => {
-    if (newQuantity <= 0) {
-      dispatch(removeItem(id));
-    } else {
-      dispatch(updateQuantity({ id, quantity: newQuantity }));
+      dispatch(syncCart(items));
+    }
+  }, [cartData, dispatch]);
+
+  // Map API products -> RelatedProduct shape (You May Also Like)
+  const relatedProducts: RelatedProduct[] = useMemo(() => {
+    const raw = productsData?.data ?? [];
+    if (!Array.isArray(raw)) return [];
+
+    return raw.slice(0, 4).map((p: any) => {
+      const price = Number(p.discount_price ?? p.price) || 0;
+      const originalPrice = Number(p.original_price ?? p.price) || price;
+
+      return {
+        id: String(p.id ?? p.product_id ?? ''),
+        name: p.name || '',
+        image: extractFirstImage(p),
+        alt: p.name || 'Product',
+        price,
+        originalPrice,
+        rating: Number(p.rating) || 0,
+        reviews: Number(p.reviews ?? p.reviews_count) || 0,
+      };
+    });
+  }, [productsData]);
+
+  // Map API products -> RecentProduct shape (for EmptyCart)
+  const recentProducts: RecentProduct[] = useMemo(() => {
+    const raw = productsData?.data ?? [];
+    if (!Array.isArray(raw)) return [];
+
+    return raw.slice(0, 2).map((p: any) => ({
+      id: String(p.id ?? p.product_id ?? ''),
+      name: p.name || '',
+      image: extractFirstImage(p),
+      alt: p.name || 'Product',
+      price: Number(p.discount_price ?? p.price) || 0,
+    }));
+  }, [productsData]);
+
+  const handleQuantityChange = async (id: string, newQuantity: number) => {
+    const cartItem = cartItems.find((item) => item.id === id);
+    const updateId = cartItem?.recordId ?? id;
+
+    dispatch(updateQuantity({ id, quantity: newQuantity }));
+    try {
+      await updateCart({ id: updateId, quantity: newQuantity }).unwrap();
+    } catch (err) {
+      console.error('Failed to update quantity on server:', err);
     }
   };
 
-  const handleRemoveItem = (id: string) => {
+  const handleRemoveItem = async (id: string) => {
+    const cartItem = cartItems.find((item) => item.id === id);
+    const deleteId = cartItem?.recordId ?? id;
+
     dispatch(removeItem(id));
+    try {
+      await removeFromCart(deleteId).unwrap();
+    } catch (err) {
+      console.error('Failed to remove item on server:', err);
+    }
   };
 
-  const handleSaveForLater = (id: string) => {
+  const handleSaveForLater = async (id: string) => {
+    const cartItem = cartItems.find((item) => item.id === id);
+    const deleteId = cartItem?.recordId ?? id;
+
     dispatch(removeItem(id));
+    try {
+      await removeFromCart(deleteId).unwrap();
+    } catch (err) {
+      console.error('Failed to save-for-later (remove) item on server:', err);
+    }
   };
 
-  const handleClearCart = () => {
+  const handleClearCart = async () => {
     dispatch(clearCart());
     setIsClearModalOpen(false);
-  };
-
-  const handleApplyPromo = (code: string) => {
-  };
-
-  const handleCheckout = () => {
-    if (cartItems.length === 0) {
-      alert('Your cart is empty!');
-      return;
+    try {
+      await clearCartMutation(undefined).unwrap();
+    } catch (err) {
+      console.error('Failed to clear cart on server:', err);
     }
-    router.push('/checkout-process');
+  };
+
+  const handleApplyPromo = (_code: string) => {
+    // no-op
   };
 
   if (!isHydrated) {
     return (
       <div className="min-h-screen bg-[#FAFAFA]">
-        <div className="w-full px-2 py-8 sm:px-4">
+        <div className="mx-auto max-w-[1200px] px-4 py-8 sm:px-6">
           <div className="h-8 w-48 animate-pulse rounded bg-[#F0EDEA]"></div>
           <div className="mt-8 grid gap-8 lg:grid-cols-3">
             <div className="space-y-4 lg:col-span-2">
@@ -190,12 +240,14 @@ export default function ShoppingCartInteractive() {
 
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
-      <div className="w-full px-2 py-8 sm:px-4">
+      <div className="mx-auto max-w-[1200px] px-4 py-8 sm:px-6">
         {cartItems.length > 0 ? (
           <>
             <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
               <div>
-                <h1 className="font-heading text-3xl font-bold text-[#1A1A2E]">Shopping Cart</h1>
+                <h1 className="font-heading text-3xl font-bold text-[#1A1A2E]">
+                  Shopping Cart
+                </h1>
                 <p className="mt-1 text-[#7A7A7A]">
                   {totalItems} {totalItems === 1 ? 'item' : 'items'} in your cart
                 </p>
@@ -211,25 +263,48 @@ export default function ShoppingCartInteractive() {
 
             <div className="grid gap-8 lg:grid-cols-3">
               <div className="space-y-4 lg:col-span-2">
-                {cartItems.map((item) => (
-                  <CartItem
-                    key={item.id}
-                    item={{
-                      id: item.id,
-                      name: item.name,
-                      image: item.image,
-                      price: item.price,
-                      quantity: item.quantity,
-                      variant: item.variant || '',
-                      originalPrice: (item as any).originalPrice || undefined,
-                      packingStandard: (item as any).packingStandard || undefined,
-                    }}
-                    onQuantityChange={handleQuantityChange}
-                    onRemove={handleRemoveItem}
-                    onSaveForLater={handleSaveForLater}
-                  />
-                ))}
+                {cartItems.map((item) => {
+                  // Build itemData so that undefined optional props are OMITTED,
+                  // not passed as `undefined` (required by exactOptionalPropertyTypes)
+                  const itemData: {
+                    id: string;
+                    name: string;
+                    image: string;
+                    price: number;
+                    quantity: number;
+                    variant?: string;
+                    originalPrice?: number;
+                    packingStandard?: string;
+                  } = {
+                    id: item.id,
+                    name: item.name,
+                    image: item.image,
+                    price: item.price,
+                    quantity: item.quantity,
+                  };
+
+                  if (item.variant !== undefined) {
+                    itemData.variant = item.variant;
+                  }
+                  if (item.originalPrice !== undefined) {
+                    itemData.originalPrice = item.originalPrice;
+                  }
+                  if (item.packingStandard !== undefined) {
+                    itemData.packingStandard = item.packingStandard;
+                  }
+
+                  return (
+                    <CartItem
+                      key={item.id}
+                      item={itemData}
+                      onQuantityChange={handleQuantityChange}
+                      onRemove={handleRemoveItem}
+                      onSaveForLater={handleSaveForLater}
+                    />
+                  );
+                })}
               </div>
+
               <div>
                 <OrderSummary
                   summary={orderSummary}
@@ -237,15 +312,6 @@ export default function ShoppingCartInteractive() {
                   onApplyPromo={handleApplyPromo}
                 />
               </div>
-            </div>
-
-            <div className="mt-6 flex justify-end">
-              <button
-                onClick={handleCheckout}
-                className="rounded-lg bg-[#D4AF37] px-8 py-3 text-sm font-semibold text-[#1A1A2E] transition hover:bg-[#C5A035] hover:scale-[0.98]"
-              >
-                Proceed to Checkout
-              </button>
             </div>
 
             <RelatedProducts products={relatedProducts} />

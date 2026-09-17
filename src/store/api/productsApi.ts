@@ -1,20 +1,30 @@
 import { baseApi } from './baseApi'
 
 export interface Product {
-  id: string
+  id: string | number
   name: string
+  slug?: string
   price: number
-  image: string
-  description: string
-  category: string
-  inStock: boolean
+  discount_price?: number
+  original_price?: number
+  discount?: number
+  image?: string
+  product_images?: string | string[]
+  description?: string
+  category?: string
+  category_name?: string
+  inStock?: boolean
+  stock_quantity?: number
   rating?: number
+  reviews?: number
+  reviews_count?: number
+  packing_standard?: string
 }
 
 export interface ProductsResponse {
-  success: boolean;
-  message: string;
-  data: Product[];
+  success: boolean
+  message: string
+  data: Product[]
 }
 
 export const productsApi = baseApi.injectEndpoints({
@@ -77,7 +87,6 @@ export const productsApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['Product'],
     }),
-    // Inventory endpoints
     getInventory: builder.query<any, void>({
       query: () => '/admin/inventory',
       providesTags: ['Inventory'],
@@ -120,6 +129,3 @@ export const {
   useGetLowStockProductsQuery,
   useGetInventoryStatsQuery,
 } = productsApi
-
-
-

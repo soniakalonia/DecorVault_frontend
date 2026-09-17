@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import CartItem from './CartItem';
 import OrderSummary from './OrderSummary';
@@ -14,18 +14,23 @@ import {
   useClearCartMutation,
   useUpdateCartMutation,
 } from '@/store/api/cartApi';
+import { useGetProductsQuery } from '@/store/api/productsApi';
 import { clearCart, removeItem, updateQuantity, syncCart } from '@/store/slices/cart';
 import type { RootState } from '@/store/store';
 
 interface RelatedProduct {
   id: string;
+  slug?: string;
   name: string;
+  category?: string;
   image: string;
   alt: string;
   price: number;
   originalPrice: number;
+  discount?: number;
   rating: number;
-  reviews: number;
+  reviews?: number;
+  packingStandard?: string;
 }
 
 interface RecentProduct {
@@ -34,6 +39,26 @@ interface RecentProduct {
   image: string;
   alt: string;
   price: number;
+}
+
+function extractFirstImage(product: any): string {
+  const raw = product?.product_images ?? product?.image ?? product?.images ?? '';
+  if (!raw) return '';
+  if (Array.isArray(raw)) return raw[0] || '';
+  if (typeof raw === 'string') {
+    const trimmed = raw.trim();
+    if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) return parsed[0] || '';
+        if (typeof parsed === 'string') return parsed;
+      } catch {
+        return raw;
+      }
+    }
+    return raw;
+  }
+  return '';
 }
 
 export default function ShoppingCartInteractive() {
@@ -49,6 +74,9 @@ export default function ShoppingCartInteractive() {
     skip: !isAuthenticated,
   });
 
+  // Live products from API — no hardcoding
+  const { data: productsData } = useGetProductsQuery({ limit: 8 });
+
   const [removeFromCart] = useRemoveFromCartMutation();
   const [clearCartMutation] = useClearCartMutation();
   const [updateCart] = useUpdateCartMutation();
@@ -62,24 +90,29 @@ export default function ShoppingCartInteractive() {
       const items = cartData.data.map((item: any) => {
         let images: any[] = [];
         try {
-          images = typeof item.product_images === 'string'
-            ? JSON.parse(item.product_images)
-            : item.product_images || [];
+          images =
+            typeof item.product_images === 'string'
+              ? JSON.parse(item.product_images)
+              : item.product_images || [];
         } catch {
           images = [];
         }
 
         return {
-          id: item.variant_id && item.variant_id !== 'default'
-            ? item.variant_id.toString()
-            : item.product_id?.toString() || item.id?.toString() || 'unknown',
+          id:
+            item.variant_id && item.variant_id !== 'default'
+              ? item.variant_id.toString()
+              : item.product_id?.toString() || item.id?.toString() || 'unknown',
           recordId: item.id,
           name: item.name,
           image: Array.isArray(images) ? images[0] || '' : '',
           price: Number(item.discount_price ?? item.price) || 0,
           originalPrice: item.price ? Number(item.price) : undefined,
           quantity: Number(item.quantity) || 1,
-          variant: item.variant_id && item.variant_id !== 'default' ? item.variant_id : undefined,
+          variant:
+            item.variant_id && item.variant_id !== 'default'
+              ? item.variant_id
+              : undefined,
           packingStandard: item.packing_standard || undefined,
         };
       });
@@ -89,74 +122,54 @@ export default function ShoppingCartInteractive() {
     }
   }, [cartData, dispatch]);
 
-  const relatedProducts: RelatedProduct[] = [
-    {
-      id: '5',
-      name: 'Modern Wall Clock - Gold Finish',
-      image: '/assets/images/products/clocks/clock-1.jpg',
-      alt: 'Sleek modern wall clock with metal frame',
-      price: 999,
-      originalPrice: 1299,
-      rating: 4.5,
-      reviews: 128,
-    },
-    {
-      id: '6',
-      name: 'Photo Frame Gift Box',
-      image: '/assets/images/products/gifts/gift-4.jpg',
-      alt: 'Elegant photo frame gift box with candle and card',
-      price: 1199,
-      originalPrice: 1499,
-      rating: 4.7,
-      reviews: 245,
-    },
-    {
-      id: '7',
-      name: 'Peace Lily Plant',
-      image: '/assets/images/products/plants/plant-4.jpg',
-      alt: 'Beautiful peace lily with white flowers',
-      price: 599,
-      originalPrice: 749,
-      rating: 4.3,
-      reviews: 89,
-    },
-    {
-      id: '8',
-      name: 'Luxury Perfume Gift Set',
-      image: '/assets/images/products/fragrances/fragrance-1.jpg',
-      alt: 'Premium perfume gift set with 3 fragrances',
-      price: 1999,
-      originalPrice: 2499,
-      rating: 4.6,
-      reviews: 312,
-    },
-  ];
+  // Map API products -> RelatedProduct shape (You May Also Like)
+  const relatedProducts: RelatedProduct[] = useMemo(() => {
+    const raw = productsData?.data ?? [];
+    if (!Array.isArray(raw)) return [];
 
-  // Updated recent products - Home Decor
-  const recentProducts: RecentProduct[] = [
-    {
-      id: '9',
-      name: 'Vintage Wooden Wall Clock',
-      image: '/assets/images/products/clocks/clock-2.jpg',
-      alt: 'Beautiful vintage wooden wall clock with roman numerals',
-      price: 1999,
-    },
-    {
-      id: '10',
-      name: 'Modern Ceramic Vase',
-      image: '/assets/images/products/vases/vase-1.jpg',
-      alt: 'Elegant modern ceramic vase with matte finish',
-      price: 999,
-    },
-  ];
+    return raw.slice(0, 4).map((p: any) => {
+      const price = Number(p.discount_price ?? p.price) || 0;
+      const originalPrice = Number(p.original_price ?? p.price) || price;
+      const discount =
+        originalPrice > price && originalPrice > 0
+          ? Math.round(((originalPrice - price) / originalPrice) * 100)
+          : 0;
+
+      return {
+        id: String(p.id ?? p.product_id ?? ''),
+        slug: p.slug || String(p.id ?? ''),
+        name: p.name || '',
+        category: p.category_name || p.category || '',
+        image: extractFirstImage(p),
+        alt: p.name || 'Product',
+        price,
+        originalPrice,
+        discount,
+        rating: Number(p.rating) || 0,
+        reviews: Number(p.reviews ?? p.reviews_count) || 0,
+      };
+    });
+  }, [productsData]);
+
+  // Map API products -> RecentProduct shape (for EmptyCart)
+  const recentProducts: RecentProduct[] = useMemo(() => {
+    const raw = productsData?.data ?? [];
+    if (!Array.isArray(raw)) return [];
+
+    return raw.slice(0, 2).map((p: any) => ({
+      id: String(p.id ?? p.product_id ?? ''),
+      name: p.name || '',
+      image: extractFirstImage(p),
+      alt: p.name || 'Product',
+      price: Number(p.discount_price ?? p.price) || 0,
+    }));
+  }, [productsData]);
 
   const handleQuantityChange = async (id: string, newQuantity: number) => {
     const cartItem = cartItems.find((item) => item.id === id);
     const updateId = cartItem?.recordId ?? id;
 
-    // Optimistic local update for snappy UI...
     dispatch(updateQuantity({ id, quantity: newQuantity }));
-    // ...but also persist to the server so it survives refresh.
     try {
       await updateCart({ id: updateId, quantity: newQuantity }).unwrap();
     } catch (err) {
@@ -168,9 +181,7 @@ export default function ShoppingCartInteractive() {
     const cartItem = cartItems.find((item) => item.id === id);
     const deleteId = cartItem?.recordId ?? id;
 
-    // Optimistic local update so the item disappears immediately.
     dispatch(removeItem(id));
-    // Persist the removal server-side.
     try {
       await removeFromCart(deleteId).unwrap();
     } catch (err) {
@@ -200,7 +211,8 @@ export default function ShoppingCartInteractive() {
     }
   };
 
-  const handleApplyPromo = (code: string) => {
+  const handleApplyPromo = (_code: string) => {
+    // no-op
   };
 
   if (!isHydrated) {
@@ -242,10 +254,11 @@ export default function ShoppingCartInteractive() {
       <div className="mx-auto max-w-[1200px] px-4 py-8 sm:px-6">
         {cartItems.length > 0 ? (
           <>
-            {/* Header */}
             <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
               <div>
-                <h1 className="font-heading text-3xl font-bold text-[#1A1A2E]">Shopping Cart</h1>
+                <h1 className="font-heading text-3xl font-bold text-[#1A1A2E]">
+                  Shopping Cart
+                </h1>
                 <p className="mt-1 text-[#7A7A7A]">
                   {totalItems} {totalItems === 1 ? 'item' : 'items'} in your cart
                 </p>
@@ -259,9 +272,7 @@ export default function ShoppingCartInteractive() {
               </button>
             </div>
 
-            {/* Cart Content */}
             <div className="grid gap-8 lg:grid-cols-3">
-              {/* Cart Items */}
               <div className="space-y-4 lg:col-span-2">
                 {cartItems.map((item) => (
                   <CartItem
@@ -274,7 +285,6 @@ export default function ShoppingCartInteractive() {
                 ))}
               </div>
 
-              {/* Order Summary */}
               <div>
                 <OrderSummary
                   summary={orderSummary}
@@ -284,7 +294,6 @@ export default function ShoppingCartInteractive() {
               </div>
             </div>
 
-            {/* Related Products */}
             <RelatedProducts products={relatedProducts} />
           </>
         ) : (
@@ -292,7 +301,6 @@ export default function ShoppingCartInteractive() {
         )}
       </div>
 
-      {/* Clear Cart Modal */}
       <ClearCartModal
         isOpen={isClearModalOpen}
         onClose={() => setIsClearModalOpen(false)}

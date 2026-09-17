@@ -1,29 +1,26 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useRouter } from 'next/navigation';
 import CartItem from './CartItem';
 import OrderSummary from './OrderSummary';
 import RelatedProducts from './RelatedProducts';
 import EmptyCart from './EmptyCart';
 import ClearCartModal from './ClearCartModal';
 import Icon from '@/components/ui/AppIcon';
-import type { RootState } from '@/store/store';
+import { useGetProductsQuery } from '@/store/api/productsApi';
 import { removeItem, updateQuantity, clearCart } from '@/store/slices/cart';
+import type { RootState } from '@/store/store';
 
 interface RelatedProduct {
   id: string;
-  slug: string;
   name: string;
-  category: string;
   image: string;
   alt: string;
   price: number;
   originalPrice: number;
-  discount: number;
   rating: number;
-  packingStandard?: string;
+  reviews: number;
 }
 
 interface RecentProduct {
@@ -34,90 +31,72 @@ interface RecentProduct {
   price: number;
 }
 
+function extractFirstImage(product: any): string {
+  const raw = product?.product_images ?? product?.image ?? product?.images ?? '';
+  if (!raw) return '';
+  if (Array.isArray(raw)) return raw[0] || '';
+  if (typeof raw === 'string') {
+    const trimmed = raw.trim();
+    if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) return parsed[0] || '';
+        if (typeof parsed === 'string') return parsed;
+      } catch {
+        return raw;
+      }
+    }
+    return raw;
+  }
+  return '';
+}
+
 export default function ShoppingCartInteractive() {
   const dispatch = useDispatch();
-  const router = useRouter();
   const [isHydrated, setIsHydrated] = useState(false);
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
 
-  // Get cart items from Redux store
   const cartItems = useSelector((state: RootState) => state.cart.items);
   const totalItems = useSelector((state: RootState) => state.cart.itemCount);
 
+  // Live products from API — no hardcoding
+  const { data: productsData } = useGetProductsQuery({ limit: 8 });
+
   useEffect(() => {
     setIsHydrated(true);
-  }, [cartItems, totalItems]);
+  }, []);
 
-  // Related Products
-  const relatedProducts: RelatedProduct[] = [
-    {
-      id: 'rp1',
-      slug: 'modern-wall-clock',
-      name: 'Modern Wall Clock - Gold Finish',
-      category: 'Clocks',
-      image: '/assets/images/products/clock/clock-1.jpg',
-      alt: 'Sleek modern wall clock with metal frame',
-      price: 999,
-      originalPrice: 1299,
-      discount: 23,
-      rating: 4.5,
-    },
-    {
-      id: 'rp2',
-      slug: 'photo-frame-gift-box',
-      name: 'Photo Frame Gift Box',
-      category: 'Gift Items',
-      image: '/assets/images/products/gifts/gift-4.jpg',
-      alt: 'Elegant photo frame gift box with candle and card',
-      price: 1199,
-      originalPrice: 1499,
-      discount: 20,
-      rating: 4.7,
-    },
-    {
-      id: 'rp3',
-      slug: 'peace-lily-plant',
-      name: 'Indoor Plant - Peace Lily',
-      category: 'Indoor Plants',
-      image: '/assets/images/products/plants/plant-4.jpg',
-      alt: 'Beautiful peace lily with white flowers',
-      price: 599,
-      originalPrice: 749,
-      discount: 20,
-      rating: 4.3,
-    },
-    {
-      id: 'rp4',
-      slug: 'premium-perfume-gift-set',
-      name: 'Premium Perfume Gift Set',
-      category: 'Fragrances',
-      image: '/assets/images/products/Fragnances/fragrance-1.jpg',
-      alt: 'Premium perfume gift set with 3 fragrances',
-      price: 1999,
-      originalPrice: 2499,
-      discount: 20,
-      rating: 4.6,
-    },
-  ];
+  const relatedProducts: RelatedProduct[] = useMemo(() => {
+    const raw = productsData?.data ?? [];
+    if (!Array.isArray(raw)) return [];
+    return raw.slice(0, 4).map((p: any) => {
+      const price = Number(p.discount_price ?? p.price) || 0;
+      const originalPrice = Number(p.original_price ?? p.price) || price;
+      return {
+        id: String(p.id ?? p.product_id ?? ''),
+        name: p.name || '',
+        image: extractFirstImage(p),
+        alt: p.name || 'Product',
+        price,
+        originalPrice,
+        rating: Number(p.rating) || 0,
+        reviews: Number(p.reviews ?? p.reviews_count) || 0,
+      };
+    });
+  }, [productsData]);
 
-  const recentProducts: RecentProduct[] = [
-    {
-      id: '9',
-      name: 'Vintage Wooden Wall Clock',
-      image: '/assets/images/products/clock/clock-2.jpg',
-      alt: 'Beautiful vintage wooden wall clock with roman numerals',
-      price: 1999,
-    },
-    {
-      id: '10',
-      name: 'Modern Ceramic Vase',
-      image: '/assets/images/products/vases/vase-1.jpg',
-      alt: 'Elegant modern ceramic vase with matte finish',
-      price: 999,
-    },
-  ];
+  const recentProducts: RecentProduct[] = useMemo(() => {
+    const raw = productsData?.data ?? [];
+    if (!Array.isArray(raw)) return [];
+    return raw.slice(0, 2).map((p: any) => ({
+      id: String(p.id ?? p.product_id ?? ''),
+      name: p.name || '',
+      image: extractFirstImage(p),
+      alt: p.name || 'Product',
+      price: Number(p.discount_price ?? p.price) || 0,
+    }));
+  }, [productsData]);
 
-  // ✅ Redux actions for cart
   const handleQuantityChange = (id: string, newQuantity: number) => {
     if (newQuantity <= 0) {
       dispatch(removeItem(id));
@@ -134,22 +113,13 @@ export default function ShoppingCartInteractive() {
     dispatch(removeItem(id));
   };
 
-  // Now clearCart works!
   const handleClearCart = () => {
     dispatch(clearCart());
     setIsClearModalOpen(false);
   };
 
   const handleApplyPromo = (code: string) => {
-  };
-
-  // Handle checkout
-  const handleCheckout = () => {
-    if (cartItems.length === 0) {
-      alert('Your cart is empty!');
-      return;
-    }
-    router.push('/checkout-process');
+    // no-op
   };
 
   if (!isHydrated) {
@@ -170,7 +140,6 @@ export default function ShoppingCartInteractive() {
     );
   }
 
-  // Calculate totals from Redux cart
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const discount = subtotal > 2000 ? Math.floor(subtotal * 0.1) : 0;
   const deliveryCharges = subtotal > 1000 ? 0 : 50;
@@ -236,16 +205,6 @@ export default function ShoppingCartInteractive() {
                   onApplyPromo={handleApplyPromo}
                 />
               </div>
-            </div>
-
-            {/* Checkout Button */}
-            <div className="mt-6 flex justify-end">
-              <button
-                onClick={handleCheckout}
-                className="rounded-lg bg-[#D4AF37] px-8 py-3 text-sm font-semibold text-[#1A1A2E] transition hover:bg-[#C5A035] hover:scale-[0.98]"
-              >
-                Proceed to Checkout
-              </button>
             </div>
 
             <RelatedProducts products={relatedProducts} />

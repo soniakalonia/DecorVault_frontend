@@ -12,7 +12,7 @@ interface RelatedProduct {
   price: number;
   originalPrice: number;
   rating: number;
-  reviews: number;
+  reviews?: number;
 }
 
 interface RelatedProductsProps {
@@ -67,15 +67,19 @@ export default function RelatedProducts({ products }: RelatedProductsProps) {
                     />
                   ))}
                 </div>
-                <span className="caption text-muted-foreground">({product.reviews})</span>
+                {product.reviews !== undefined && (
+                  <span className="caption text-muted-foreground">({product.reviews})</span>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <span className="data-text font-semibold text-primary">
                   ₹{product.price.toLocaleString('en-IN')}
                 </span>
-                <span className="data-text text-sm text-muted-foreground line-through">
-                  ₹{product.originalPrice.toLocaleString('en-IN')}
-                </span>
+                {product.originalPrice > product.price && (
+                  <span className="data-text text-sm text-muted-foreground line-through">
+                    ₹{product.originalPrice.toLocaleString('en-IN')}
+                  </span>
+                )}
               </div>
             </div>
           </Link>
@@ -84,6 +88,3 @@ export default function RelatedProducts({ products }: RelatedProductsProps) {
     </div>
   );
 }
-
-
-
