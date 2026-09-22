@@ -125,7 +125,8 @@ export default function PrivacyPolicyPage() {
                 <strong>Phone:</strong> +91 98765 43210
               </p>
               <p className="text-base">
-                <strong>Address:</strong> DecorVault, 123 Main Street, Delhi, India
+                <strong>Address:</strong> H No. 9/149, Shyam Block, Kailash Nagar
+Gandhi Nagar, New Delhi – 110031
               </p>
             </div>
 

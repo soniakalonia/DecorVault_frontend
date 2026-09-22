@@ -34,7 +34,6 @@ export default function TermsAndConditionsPage() {
             {/* Section 1 */}
             <h2 className="text-xl font-semibold text-[#1A2A3A] mt-8 mb-3">1. General Terms</h2>
             <ul className="list-disc pl-6 space-y-1 text-base text-[#374151]">
-              <li>By using this website, you confirm that you are at least 18 years of age</li>
               <li>You agree to provide accurate and complete information when placing orders</li>
               <li>You are responsible for maintaining the confidentiality of your account credentials</li>
               <li>We reserve the right to refuse service, terminate accounts, or cancel orders at our discretion</li>
@@ -140,7 +139,8 @@ export default function TermsAndConditionsPage() {
                 <strong>Phone:</strong> +91 98765 43210
               </p>
               <p className="text-base">
-                <strong>Address:</strong> DecorVault, 123 Main Street, Delhi, India
+                <strong>Address:</strong> H No. 9/149, Shyam Block, Kailash Nagar
+Gandhi Nagar, New Delhi – 110031
               </p>
             </div>
 
