@@ -60,7 +60,7 @@ const Header = () => {
   const navLinks = [
     { href: '/', label: 'Home' },
     { href: '/products', label: 'Shop' },
-    { href: '/categories', label: 'Shop by Categories' },
+    //`{ href: '/categories', label: 'Shop by Categories' },
     { href: '/about', label: 'About' },
     { href: '/contact', label: 'Contact' },
   ];

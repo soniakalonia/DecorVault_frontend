@@ -37,7 +37,7 @@ const OrderHistoryItem = ({
         <div>
           <div className="mb-1 flex items-center space-x-2">
             <h3 className="font-heading text-lg font-semibold text-card-foreground">
-              Order #{orderId}
+              Order {orderId}
             </h3>
             <span className={`caption rounded-full px-3 py-1 ${statusColor}`}>{status}</span>
           </div>

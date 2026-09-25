@@ -52,7 +52,7 @@ const AdminSidebar = () => {
       groupName: 'ORDERS & SALES',
       items: [
         { title: 'Orders', icon: 'ShoppingBagIcon', href: '/admin-dashboard/orders' },
-        { title: 'Revenue', icon: 'CurrencyDollarIcon', href: '/admin-dashboard/revenue' },
+        // { title: 'Revenue', icon: 'CurrencyDollarIcon', href: '/admin-dashboard/revenue' },
         { title: 'Return', icon: 'ArrowUturnLeftIcon', href: '/admin-dashboard/return' },
         { title: 'Coupons', icon: 'TicketIcon', href: '/admin-dashboard/coupons' },
         { title: 'Subscribe', icon: 'CreditCardIcon', href: '/admin-dashboard/subscription' },

@@ -128,7 +128,7 @@ const AdminDashboardView = () => {
                         <Icon name="ShoppingBagIcon" size={20} className="text-mocha-grey" />
                       </div>
                       <div>
-                        <h4 className="font-bold text-espresso">Order #VMR-{String(order.id).padStart(3, '0')}</h4>
+                        <h4 className="font-bold text-espresso">Order #DV-{String(order.id).padStart(3, '0')}</h4>
                         <p className="text-xs text-mocha-grey font-medium">{order.email || '-'}</p>
                       </div>
                     </div>

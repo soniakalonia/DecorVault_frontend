@@ -189,7 +189,7 @@ export default function OrdersPage() {
                   <tbody className="divide-y">
                     {currentOrders.map((order: any) => (
                       <tr key={order.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 text-sm font-medium">VMR-{String(order.id).padStart(3, '0')}</td>
+                        <td className="px-6 py-4 text-sm font-medium">DV-{String(order.id).padStart(3, '0')}</td>
                         <td className="px-6 py-4 text-sm">
                           <div>{order.full_name}</div>
                           <div className="text-gray-500 text-xs">{order.email}</div>
@@ -336,7 +336,7 @@ export default function OrdersPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-espresso">Order VMR-{String(selectedOrder.id).padStart(3, '0')}</h2>
+              <h2 className="text-2xl font-bold text-espresso">Order DV-{String(selectedOrder.id).padStart(3, '0')}</h2>
               <button onClick={() => setSelectedOrderId(null)} className="text-gray-500 hover:text-gray-700">
                 <X className="w-6 h-6" />
               </button>
