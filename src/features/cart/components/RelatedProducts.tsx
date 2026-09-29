@@ -6,6 +6,7 @@ import Icon from '@/components/ui/AppIcon';
 
 interface RelatedProduct {
   id: string;
+  slug?: string;               // ← ADD: slug aayega from API
   name: string;
   image: string;
   alt: string;
@@ -36,54 +37,61 @@ export default function RelatedProducts({ products }: RelatedProductsProps) {
       </div>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {products.map((product) => (
-          <Link
-            key={product.id}
-            href={`/product-details?id=${product.id}`}
-            className="group rounded-lg border border-border bg-card transition-smooth hover:shadow-elevation-2"
-          >
-            <div className="aspect-square overflow-hidden rounded-t-lg bg-muted">
-              <AppImage
-                src={product.image}
-                alt={product.alt}
-                className="h-full w-full object-cover transition-smooth group-hover:scale-105"
-              />
-            </div>
-            <div className="p-4">
-              <h3 className="mb-2 line-clamp-2 text-sm font-medium text-card-foreground">
-                {product.name}
-              </h3>
-              <div className="mb-2 flex items-center gap-1">
-                <div className="flex items-center">
-                  {[...Array(5)].map((_, i) => (
-                    <Icon
-                      key={i}
-                      name="StarIcon"
-                      size={14}
-                      variant={i < Math.floor(product.rating) ? 'solid' : 'outline'}
-                      className={
-                        i < Math.floor(product.rating) ? 'text-accent' : 'text-muted-foreground'
-                      }
-                    />
-                  ))}
+        {products.map((product) => {
+          // ✅ Use slug if available, else fall back to id
+          const href = product.slug
+            ? `/product/${product.slug}`
+            : `/product/${product.id}`;
+
+          return (
+            <Link
+              key={product.id}
+              href={href}
+              className="group rounded-lg border border-border bg-card transition-smooth hover:shadow-elevation-2"
+            >
+              <div className="aspect-square overflow-hidden rounded-t-lg bg-muted">
+                <AppImage
+                  src={product.image}
+                  alt={product.alt}
+                  className="h-full w-full object-cover transition-smooth group-hover:scale-105"
+                />
+              </div>
+              <div className="p-4">
+                <h3 className="mb-2 line-clamp-2 text-sm font-medium text-card-foreground">
+                  {product.name}
+                </h3>
+                <div className="mb-2 flex items-center gap-1">
+                  <div className="flex items-center">
+                    {[...Array(5)].map((_, i) => (
+                      <Icon
+                        key={i}
+                        name="StarIcon"
+                        size={14}
+                        variant={i < Math.floor(product.rating) ? 'solid' : 'outline'}
+                        className={
+                          i < Math.floor(product.rating) ? 'text-accent' : 'text-muted-foreground'
+                        }
+                      />
+                    ))}
+                  </div>
+                  {product.reviews !== undefined && (
+                    <span className="caption text-muted-foreground">({product.reviews})</span>
+                  )}
                 </div>
-                {product.reviews !== undefined && (
-                  <span className="caption text-muted-foreground">({product.reviews})</span>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="data-text font-semibold text-primary">
-                  ₹{product.price.toLocaleString('en-IN')}
-                </span>
-                {product.originalPrice > product.price && (
-                  <span className="data-text text-sm text-muted-foreground line-through">
-                    ₹{product.originalPrice.toLocaleString('en-IN')}
+                <div className="flex items-center gap-2">
+                  <span className="data-text font-semibold text-primary">
+                    ₹{product.price.toLocaleString('en-IN')}
                   </span>
-                )}
+                  {product.originalPrice > product.price && (
+                    <span className="data-text text-sm text-muted-foreground line-through">
+                      ₹{product.originalPrice.toLocaleString('en-IN')}
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-          </Link>
-        ))}
+            </Link>
+          );
+        })}
       </div>
     </div>
   );
