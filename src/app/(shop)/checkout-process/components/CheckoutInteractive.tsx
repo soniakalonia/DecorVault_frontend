@@ -70,9 +70,10 @@ const CheckoutInteractive = () => {
     }, [isHydrated, isAuthenticated, cartItems, router]);
 
     const subtotal = cartItems.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0);
-    const gst = Math.round(subtotal * 0.18);
     const deliveryCharges = subtotal > 1000 ? 0 : 50;
     const discount = 0;
+    // ✅ GST on (subtotal - discount + delivery), rounded to nearest rupee (India rules)
+    const gst = Math.round(((subtotal - discount + deliveryCharges) * 18) / 100);
     const total = subtotal + gst + deliveryCharges - discount;
 
     const handleAddressSelect = (address: Address) => {

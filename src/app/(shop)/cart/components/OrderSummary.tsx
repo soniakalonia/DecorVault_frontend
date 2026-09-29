@@ -1,183 +1,210 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
-import Icon from '@/components/ui/AppIcon';
+import { useState, useEffect } from 'react';
+import { Tag, X, Check, Loader2 } from 'lucide-react';
 
-interface OrderSummaryData {
+export interface AppliedCoupon {
+  coupon_id: number;
+  code: string;
+  type: string;
+  discount_amount: number;
+  coupon_details?: any;
+}
+
+export interface OrderSummaryData {
   subtotal: number;
   discount: number;
   deliveryCharges: number;
   gstRate: number;
   gstAmount: number;
   total: number;
+  appliedCoupon?: AppliedCoupon | null;
 }
 
 interface OrderSummaryProps {
   summary: OrderSummaryData;
   itemCount: number;
-  onApplyPromo: (code: string) => void;
+  onApplyPromo: (code: string) => Promise<boolean>;
+  onRemovePromo?: () => void;
+  couponLoading?: boolean;
+  onProceedToCheckout?: () => void;
 }
 
-export default function OrderSummary({ summary, itemCount, onApplyPromo }: OrderSummaryProps) {
-  const [promoCode, setPromoCode] = useState('');
-  const [promoStatus, setPromoStatus] = useState<'idle' | 'success' | 'error'>('idle');
-  const [promoMessage, setPromoMessage] = useState('');
+export default function OrderSummary({
+  summary,
+  itemCount,
+  onApplyPromo,
+  onRemovePromo,
+  couponLoading = false,
+  onProceedToCheckout,
+}: OrderSummaryProps) {
+  const [code, setCode] = useState('');
+  const [localError, setLocalError] = useState('');
 
-  const handleApplyPromo = () => {
-    if (!promoCode.trim()) {
-      setPromoStatus('error');
-      setPromoMessage('Please enter a promo code');
+  useEffect(() => {
+    if (summary.appliedCoupon) {
+      setCode('');
+      setLocalError('');
+    }
+  }, [summary.appliedCoupon]);
+
+  const handleApply = async () => {
+    if (!code.trim()) {
+      setLocalError('Please enter a coupon code');
       return;
     }
-
-    // Mock promo validation
-    const validCodes = ['SAVE10', 'WELCOME20', 'BULK15'];
-    if (validCodes.includes(promoCode.toUpperCase())) {
-      setPromoStatus('success');
-      setPromoMessage('Promo code applied successfully!');
-      onApplyPromo(promoCode);
+    setLocalError('');
+    const ok = await onApplyPromo(code.trim());
+    if (!ok) {
+      setLocalError('Invalid coupon code');
     } else {
-      setPromoStatus('error');
-      setPromoMessage('Invalid promo code');
+      setCode('');
     }
-
-    setTimeout(() => {
-      setPromoStatus('idle');
-      setPromoMessage('');
-    }, 3000);
   };
 
+  const handleRemove = () => {
+    onRemovePromo?.();
+    setCode('');
+    setLocalError('');
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleApply();
+    }
+  };
+
+  const fmt = (n: number) =>
+    `₹${Number(n || 0).toLocaleString('en-IN', {
+      maximumFractionDigits: 2,
+    })}`;
+
   return (
-    <div className="sticky top-20 rounded-lg border border-border bg-card p-6 shadow-elevation-2">
-      <h2 className="font-heading mb-4 text-xl font-semibold text-card-foreground">
+    <div className="rounded-lg border border-border bg-card p-6 text-card-foreground">
+      <h2 className="mb-4 font-heading text-xl font-bold text-primary">
         Order Summary
       </h2>
 
-      {/* Promo Code */}
-      <div className="mb-6">
-        <label htmlFor="promoCode" className="mb-2 block text-sm font-medium text-card-foreground">
+      <div className="mb-5">
+        <label className="mb-2 block text-sm font-medium text-foreground">
           Promo Code
         </label>
-        <div className="flex gap-2">
-          <input
-            id="promoCode"
-            type="text"
-            value={promoCode}
-            onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-            placeholder="Enter code"
-            className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-          />
-          <button
-            onClick={handleApplyPromo}
-            className="rounded-md bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground transition-smooth hover:scale-[0.97]"
-          >
-            Apply
-          </button>
-        </div>
-        {promoMessage && (
-          <p
-            className={`caption mt-2 flex items-center gap-1 ${
-              promoStatus === 'success' ? 'text-success' : 'text-error'
-            }`}
-          >
-            <Icon
-              name={promoStatus === 'success' ? 'CheckCircleIcon' : 'XCircleIcon'}
-              size={16}
-            />
-            {promoMessage}
-          </p>
+
+        {summary.appliedCoupon ? (
+          <div className="flex items-center justify-between rounded-lg border border-green-200 bg-green-50 p-3">
+            <div className="flex items-center gap-2">
+              <Check className="h-5 w-5 text-green-600" />
+              <div>
+                <p className="text-sm font-semibold text-green-800">
+                  {summary.appliedCoupon.code}
+                </p>
+                <p className="text-xs text-green-600">
+                  You saved {fmt(summary.appliedCoupon.discount_amount)}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleRemove}
+              type="button"
+              aria-label="Remove coupon"
+              className="text-green-600 transition-colors hover:text-green-800"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Tag className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  type="text"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.toUpperCase())}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Enter coupon code"
+                  disabled={couponLoading}
+                  className="w-full rounded-lg border border-border py-2 pl-10 pr-4 text-sm text-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-secondary disabled:opacity-60"
+                />
+              </div>
+              <button
+                onClick={handleApply}
+                type="button"
+                disabled={couponLoading || !code.trim()}
+                className="flex items-center gap-1 rounded-lg bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/90 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {couponLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+                {couponLoading ? 'Applying' : 'Apply'}
+              </button>
+            </div>
+
+            {localError && (
+              <p className="mt-2 flex items-center gap-1 text-sm text-error">
+                <X className="h-4 w-4" />
+                {localError}
+              </p>
+            )}
+          </>
         )}
       </div>
 
-      {/* Price Breakdown */}
-      <div className="space-y-3 border-t border-border pt-4">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Subtotal ({itemCount} items)</span>
-          <span className="data-text font-medium text-card-foreground">
-            ₹{summary.subtotal.toLocaleString('en-IN')}
+      <div className="space-y-3 border-t border-border pt-4 text-sm">
+        <div className="flex justify-between text-muted-foreground">
+          <span>
+            Subtotal ({itemCount} {itemCount === 1 ? 'item' : 'items'})
+          </span>
+          <span className="font-medium text-foreground">
+            {fmt(summary.subtotal)}
           </span>
         </div>
 
         {summary.discount > 0 && (
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-success">Discount Applied</span>
-            <span className="data-text font-medium text-success">
-              -₹{summary.discount.toLocaleString('en-IN')}
-            </span>
+          <div className="flex justify-between text-green-600">
+            <span>Coupon Discount</span>
+            <span className="font-medium">−{fmt(summary.discount)}</span>
           </div>
         )}
 
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Delivery Charges</span>
-          <span className="data-text font-medium text-card-foreground">
+        <div className="flex justify-between text-muted-foreground">
+          <span>Delivery Charges</span>
+          <span className="font-medium text-foreground">
             {summary.deliveryCharges === 0 ? (
-              <span className="text-success">FREE</span>
+              <span className="text-green-600">FREE</span>
             ) : (
-              `₹${summary.deliveryCharges.toLocaleString('en-IN')}`
+              fmt(summary.deliveryCharges)
             )}
           </span>
         </div>
 
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">GST ({summary.gstRate}%)</span>
-          <span className="data-text font-medium text-card-foreground">
-            ₹{summary.gstAmount.toLocaleString('en-IN')}
+        <div className="flex justify-between text-muted-foreground">
+          <span>GST ({summary.gstRate}%)</span>
+          <span className="font-medium text-foreground">
+            {fmt(summary.gstAmount)}
           </span>
         </div>
-      </div>
 
-      {/* Total */}
-      <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
-        <span className="font-heading text-lg font-semibold text-card-foreground">
-          Total Amount
-        </span>
-        <span className="data-text text-2xl font-bold text-primary">
-          ₹{summary.total.toLocaleString('en-IN')}
-        </span>
-      </div>
-
-      {/* Savings Info */}
-      {summary.discount > 0 && (
-        <div className="mt-3 rounded-md bg-success/10 p-3">
-          <p className="caption flex items-center gap-2 text-success">
-            <Icon name="CheckBadgeIcon" size={18} />
-            You saved ₹{summary.discount.toLocaleString('en-IN')} on this order!
-          </p>
+        <div className="flex justify-between border-t border-border pt-3 text-base font-bold text-primary">
+          <span>Total Amount</span>
+          <span>{fmt(summary.total)}</span>
         </div>
-      )}
+      </div>
 
-      {/* Checkout Button */}
-      <Link
-        href="/checkout-process"
-        className="mt-6 flex w-full items-center justify-center gap-2 rounded-md bg-primary px-6 py-3 font-medium text-primary-foreground transition-smooth hover:scale-[0.97]"
+      <button
+        type="button"
+        onClick={onProceedToCheckout}
+        className="mt-5 w-full rounded-lg bg-primary py-3 font-medium text-primary-foreground transition-colors hover:bg-primary/90"
       >
-        <Icon name="ShoppingBagIcon" size={20} />
         Proceed to Checkout
-      </Link>
+      </button>
 
-      {/* Secure Payment Icons */}
-      <div className="mt-4 flex items-center justify-center gap-3 border-t border-border pt-4">
-        <Icon name="LockClosedIcon" size={16} className="text-muted-foreground" />
-        <span className="caption text-muted-foreground">Secure Payment</span>
-        <div className="flex gap-2">
-          <div className="h-6 w-10 rounded bg-muted"></div>
-          <div className="h-6 w-10 rounded bg-muted"></div>
-          <div className="h-6 w-10 rounded bg-muted"></div>
-        </div>
-      </div>
-
-      {/* Continue Shopping */}
-      <Link
-        href="/products"
-        className="mt-4 flex w-full items-center justify-center gap-2 rounded-md border border-border px-6 py-2 text-sm font-medium text-foreground transition-smooth hover:bg-muted"
+      <button
+        type="button"
+        onClick={() => window.history.back()}
+        className="mt-3 w-full rounded-lg border border-border py-2.5 text-sm font-medium text-primary transition-colors hover:bg-muted"
       >
-        <Icon name="ArrowLeftIcon" size={16} />
-        Continue Shopping
-      </Link>
+        ← Continue Shopping
+      </button>
     </div>
   );
 }
-
-
-

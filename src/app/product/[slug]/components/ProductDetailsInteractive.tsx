@@ -57,6 +57,19 @@ interface RelatedProduct {
   category: string;
 }
 
+/**
+ * Robust auth check — reads every possible token key
+ */
+const getToken = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  return (
+    localStorage.getItem('auth_token') ||
+    localStorage.getItem('token') ||
+    localStorage.getItem('access_token') ||
+    localStorage.getItem('decorvault_token')
+  );
+};
+
 const ProductDetailsInteractive = () => {
   const router = useRouter();
   const dispatch = useDispatch();
@@ -73,10 +86,7 @@ const ProductDetailsInteractive = () => {
   const [product, setProduct] = useState<any>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
-  const isAuthenticated = (): boolean => {
-    const token = localStorage.getItem('auth_token');
-    return !!token;
-  };
+  const isAuthenticated = (): boolean => !!getToken();
 
   useEffect(() => {
     setIsHydrated(true);
@@ -148,32 +158,39 @@ const ProductDetailsInteractive = () => {
     }
   }, [isHydrated, slug, productData]);
 
-  const specifications: Specification[] = product ? [
-    { label: 'Material', value: product.materials || 'N/A' },
-    { label: 'Brand', value: product.brand || 'N/A' },
-    { label: 'Weight', value: product.weight ? `${product.weight}kg` : 'N/A' },
-    { label: 'Warranty', value: product.warranty || 'N/A' },
-    { label: 'Category', value: product.category || 'N/A' },
-    {
-      label: 'Sizes', value: (() => {
-        try {
-          return JSON.parse(product.sizes || '[]').join(', ') || 'N/A';
-        } catch (e) {
-          return 'N/A';
-        }
-      })()
-    },
-    { label: 'Care Instructions', value: product.care_instructions || 'N/A' },
-    { label: 'Additional Info', value: product.additional_info || 'N/A' },
-    { label: 'Stock Quantity', value: product.stock_quantity?.toString() || 'N/A' },
-  ] : [];
+  const specifications: Specification[] = product
+    ? [
+        { label: 'Material', value: product.materials || 'N/A' },
+        { label: 'Brand', value: product.brand || 'N/A' },
+        { label: 'Weight', value: product.weight ? `${product.weight}kg` : 'N/A' },
+        { label: 'Warranty', value: product.warranty || 'N/A' },
+        { label: 'Category', value: product.category || 'N/A' },
+        {
+          label: 'Sizes',
+          value: (() => {
+            try {
+              return JSON.parse(product.sizes || '[]').join(', ') || 'N/A';
+            } catch (e) {
+              return 'N/A';
+            }
+          })(),
+        },
+        { label: 'Care Instructions', value: product.care_instructions || 'N/A' },
+        { label: 'Additional Info', value: product.additional_info || 'N/A' },
+        { label: 'Stock Quantity', value: product.stock_quantity?.toString() || 'N/A' },
+      ]
+    : [];
 
-  const careInstructions: string[] = product ? [
-    product.care_instructions || 'No care instructions available',
-    product.additional_info || 'No additional information available',
-  ].filter(Boolean) : [];
+  const careInstructions: string[] = product
+    ? [
+        product.care_instructions || 'No care instructions available',
+        product.additional_info || 'No additional information available',
+      ].filter(Boolean)
+    : [];
 
-  const warrantyInfo = product?.warranty ? `This product comes with ${product.warranty} warranty. ${product.additional_info || ''}` : 'No warranty information available.';
+  const warrantyInfo = product?.warranty
+    ? `This product comes with ${product.warranty} warranty. ${product.additional_info || ''}`
+    : 'No warranty information available.';
 
   const reviews: Review[] = [
     {
@@ -331,8 +348,8 @@ const ProductDetailsInteractive = () => {
       }
     }
 
-    const matchingVariant = variantData.find((v: any) =>
-      v.color?.code === variant.colorHex && v.size === variant.size
+    const matchingVariant = variantData.find(
+      (v: any) => v.color?.code === variant.colorHex && v.size === variant.size
     );
 
     if (matchingVariant?.images?.length > 0) {
@@ -365,39 +382,13 @@ const ProductDetailsInteractive = () => {
         quantity,
       }).unwrap();
 
-      const variantLabel = selectedVariant.id !== 'default'
-        ? `${selectedVariant.color || ''} - ${selectedVariant.size || ''}`
-        : undefined;
-
-      dispatch(addItem({
-        id: selectedVariant.id !== 'default' ? selectedVariant.id : product.id.toString(),
-        productId: product.id.toString(),
-        variantId: selectedVariant.id !== 'default' ? selectedVariant.id : undefined,
-        name: product.name,
-        price: selectedVariant.price,
-        image: currentImages[0]?.url || '',
-        quantity,
-        variant: variantLabel,
-      }));
-
-      toast.success(`Added ${quantity} item(s) to cart!`, {
-        autoClose: 350,
-      });
-    } catch (error: any) {
-      console.error('Add to cart failed:', error);
-      
-      if (error?.status === 401 || error?.data?.message?.includes('Unauthorized') || error?.status === 403) {
-        setShowLoginModal(true);
-      } else if (error?.status === 400) {
-        toast.error(error?.data?.message || 'Invalid request. Please try again.');
-      } else if (error?.message?.includes('NetworkError') || error?.message?.includes('Failed to fetch')) {
-        toast.error('Network error. Please check your connection.');
-      } else {
-        const variantLabel = selectedVariant.id !== 'default'
+      const variantLabel =
+        selectedVariant.id !== 'default'
           ? `${selectedVariant.color || ''} - ${selectedVariant.size || ''}`
           : undefined;
 
-        dispatch(addItem({
+      dispatch(
+        addItem({
           id: selectedVariant.id !== 'default' ? selectedVariant.id : product.id.toString(),
           productId: product.id.toString(),
           variantId: selectedVariant.id !== 'default' ? selectedVariant.id : undefined,
@@ -406,7 +397,43 @@ const ProductDetailsInteractive = () => {
           image: currentImages[0]?.url || '',
           quantity,
           variant: variantLabel,
-        }));
+        })
+      );
+
+      toast.success(`Added ${quantity} item(s) to cart!`, {
+        autoClose: 350,
+      });
+    } catch (error: any) {
+      console.error('Add to cart failed:', {
+        status: error?.status,
+        data: error?.data,
+        error: error?.error,
+        message: error?.message,
+      });
+
+      if (error?.status === 401 || error?.status === 403) {
+        setShowLoginModal(true);
+      } else if (error?.status === 400) {
+        toast.error(error?.data?.message || 'Invalid request. Please try again.');
+      } else {
+        // Local fallback
+        const variantLabel =
+          selectedVariant.id !== 'default'
+            ? `${selectedVariant.color || ''} - ${selectedVariant.size || ''}`
+            : undefined;
+
+        dispatch(
+          addItem({
+            id: selectedVariant.id !== 'default' ? selectedVariant.id : product.id.toString(),
+            productId: product.id.toString(),
+            variantId: selectedVariant.id !== 'default' ? selectedVariant.id : undefined,
+            name: product.name,
+            price: selectedVariant.price,
+            image: currentImages[0]?.url || '',
+            quantity,
+            variant: variantLabel,
+          })
+        );
         toast.info('Item saved locally. Will sync when you login.');
       }
     } finally {
@@ -433,48 +460,70 @@ const ProductDetailsInteractive = () => {
         product_id: product.id,
         variant_id: selectedVariant.id !== 'default' ? selectedVariant.id : null,
         quantity,
-        replaceQuantity: true
+        replaceQuantity: true,
       }).unwrap();
 
-      const variantLabel = selectedVariant.id !== 'default'
-        ? `${selectedVariant.color || ''} - ${selectedVariant.size || ''}`
-        : undefined;
+      const variantLabel =
+        selectedVariant.id !== 'default'
+          ? `${selectedVariant.color || ''} - ${selectedVariant.size || ''}`
+          : undefined;
 
-      dispatch(setItem({
-        id: itemId,
-        productId: product.id.toString(),
-        variantId: selectedVariant.id !== 'default' ? selectedVariant.id : undefined,
-        name: product.name,
-        price: selectedVariant.price,
-        image: currentImages[0]?.url || '',
-        quantity,
-        variant: variantLabel,
-      }));
-      
+      dispatch(
+        setItem({
+          id: itemId,
+          productId: product.id.toString(),
+          variantId: selectedVariant.id !== 'default' ? selectedVariant.id : undefined,
+          name: product.name,
+          price: selectedVariant.price,
+          image: currentImages[0]?.url || '',
+          quantity,
+          variant: variantLabel,
+        })
+      );
+
       router.push('/checkout-process');
     } catch (error: any) {
-      console.error('Buy Now failed to sync:', error);
-      
-      if (error?.status === 401 || error?.data?.message?.includes('Unauthorized') || error?.status === 403) {
+      // 🔎 Full diagnostic logging — kuch bhi ho, console me dikhega
+      console.error('=== BUY NOW FAILED — DIAGNOSTIC ===');
+      console.error('Token in LS:', getToken() ? 'YES (present)' : 'NO (missing)');
+      console.error('All LS keys:', Object.keys(localStorage));
+      console.error('Error status:', error?.status);
+      console.error('Error data:', error?.data);
+      console.error('Error error:', error?.error);
+      console.error('Error message:', error?.message);
+      try {
+        console.error(
+          'Error full:',
+          JSON.stringify(error, Object.getOwnPropertyNames(error))
+        );
+      } catch (e) {
+        console.error('Error (raw):', error);
+      }
+      console.error('===================================');
+
+      if (error?.status === 401 || error?.status === 403) {
         setShowLoginModal(true);
         return;
       }
 
-      const variantLabel = selectedVariant.id !== 'default'
-        ? `${selectedVariant.color || ''} - ${selectedVariant.size || ''}`
-        : undefined;
+      const variantLabel =
+        selectedVariant.id !== 'default'
+          ? `${selectedVariant.color || ''} - ${selectedVariant.size || ''}`
+          : undefined;
 
-      dispatch(setItem({
-        id: itemId,
-        productId: product.id.toString(),
-        variantId: selectedVariant.id !== 'default' ? selectedVariant.id : undefined,
-        name: product.name,
-        price: selectedVariant.price,
-        image: currentImages[0]?.url || '',
-        quantity,
-        variant: variantLabel,
-      }));
-      
+      dispatch(
+        setItem({
+          id: itemId,
+          productId: product.id.toString(),
+          variantId: selectedVariant.id !== 'default' ? selectedVariant.id : undefined,
+          name: product.name,
+          price: selectedVariant.price,
+          image: currentImages[0]?.url || '',
+          quantity,
+          variant: variantLabel,
+        })
+      );
+
       toast.info('Item saved locally. Proceeding to checkout.');
       router.push('/checkout-process');
     } finally {
@@ -515,7 +564,6 @@ const ProductDetailsInteractive = () => {
 
   return (
     <div className="space-y-12">
-      {/* Main Product Section */}
       <div className="grid gap-8 lg:grid-cols-2">
         <ProductImageGallery
           images={currentImages}
@@ -537,7 +585,6 @@ const ProductDetailsInteractive = () => {
         />
       </div>
 
-      {/* Product Details Tabs */}
       <ProductTabs
         productId={product.id}
         specifications={specifications}
@@ -547,10 +594,8 @@ const ProductDetailsInteractive = () => {
         relatedProducts={relatedProducts}
       />
 
-      {/* Related Products */}
       <RelatedProducts slug={slug} />
 
-      {/* Login Prompt Modal */}
       <LoginPromptModal
         isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}

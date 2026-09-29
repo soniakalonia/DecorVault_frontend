@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Tag, X, Check } from 'lucide-react';
+import { Tag, X, Check, Loader2 } from 'lucide-react';
+import { useValidateCouponMutation } from '@/store/api/couponApi';
 
 interface CouponValidatorProps {
   cartTotal: number;
@@ -10,52 +11,40 @@ interface CouponValidatorProps {
   appliedCoupon?: any;
 }
 
-export default function CouponValidator({ 
-  cartTotal, 
-  onCouponApplied, 
-  onCouponRemoved, 
-  appliedCoupon 
+export default function CouponValidator({
+  cartTotal,
+  onCouponApplied,
+  onCouponRemoved,
+  appliedCoupon,
 }: CouponValidatorProps) {
   const [couponCode, setCouponCode] = useState('');
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const validateCoupon = async () => {
-    if (!couponCode.trim()) {
+  const [validateCoupon, { isLoading: loading }] = useValidateCouponMutation();
+
+  const handleValidate = async () => {
+    const code = couponCode.trim().toUpperCase();
+    if (!code) {
       setError('Please enter a coupon code');
       return;
     }
 
-    setLoading(true);
     setError('');
 
     try {
-      const response = await fetch('/api/public/coupon/validate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          code: couponCode.toUpperCase(),
-          cart_total: cartTotal,
-          user_id: localStorage.getItem('userId') || null
-        })
-      });
+      const userId =
+        typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
 
-      const data = await response.json();
+      const res = await validateCoupon({
+        code,
+        cart_total: cartTotal,
+        user_id: userId,
+      }).unwrap();
 
-      if (data.success) {
-        onCouponApplied(data.data);
-        setCouponCode('');
-        setError('');
-      } else {
-        setError(data.message || 'Invalid coupon code');
-      }
-    } catch (error) {
-      console.error('Error validating coupon:', error);
-      setError('Failed to validate coupon. Please try again.');
-    } finally {
-      setLoading(false);
+      onCouponApplied(res.data);
+      setCouponCode('');
+    } catch (err: any) {
+      setError(err?.data?.message || 'Invalid coupon code');
     }
   };
 
@@ -83,6 +72,7 @@ export default function CouponValidator({
           <button
             onClick={removeCoupon}
             className="text-green-600 hover:text-green-800"
+            aria-label="Remove coupon"
           >
             <X className="w-5 h-5" />
           </button>
@@ -95,27 +85,28 @@ export default function CouponValidator({
     <div className="space-y-3">
       <div className="flex gap-2">
         <div className="flex-1 relative">
-          <Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             type="text"
             value={couponCode}
             onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
             placeholder="Enter coupon code"
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-espresso focus:border-transparent"
-            onKeyPress={(e) => e.key === 'Enter' && validateCoupon()}
+            className="w-full pl-10 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
+            onKeyDown={(e) => e.key === 'Enter' && handleValidate()}
           />
         </div>
         <button
-          onClick={validateCoupon}
+          onClick={handleValidate}
           disabled={loading || !couponCode.trim()}
-          className="px-4 py-2 bg-espresso text-white rounded-lg hover:bg-espresso/90 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
         >
+          {loading && <Loader2 className="w-4 h-4 animate-spin" />}
           {loading ? 'Validating...' : 'Apply'}
         </button>
       </div>
-      
+
       {error && (
-        <p className="text-sm text-red-600 flex items-center gap-1">
+        <p className="text-sm text-error flex items-center gap-1">
           <X className="w-4 h-4" />
           {error}
         </p>

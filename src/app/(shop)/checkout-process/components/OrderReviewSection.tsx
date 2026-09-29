@@ -20,19 +20,25 @@ interface CartItem {
 interface OrderReviewSectionProps {
     cartItems: CartItem[];
     subtotal: number;
-    gst: number;
     deliveryCharges: number;
+    gst: number;
     discount: number;
 }
 
 const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
     cartItems,
     subtotal,
-    gst,
     deliveryCharges,
+    gst,
     discount,
 }) => {
     const total = subtotal + gst + deliveryCharges - discount;
+
+    // ✅ Fix: sum quantities, not just length
+    const totalItemCount = cartItems.reduce(
+        (sum, item) => sum + (Number(item.quantity) || 1),
+        0
+    );
 
     return (
         <div>
@@ -80,19 +86,19 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
                 })}
             </div>
 
-            {/* Totals */}
+            {/* Totals — Order: Subtotal → Delivery → GST → Discount → Total */}
             <div className="space-y-2 border-t border-gray-200 pt-4">
                 <div className="flex justify-between text-sm text-[#6B7280]">
-                    <span>Subtotal ({cartItems.length} items)</span>
+                    <span>Subtotal ({totalItemCount} items)</span>
                     <span>₹{subtotal.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-sm text-[#6B7280]">
-                    <span>GST (18%)</span>
-                    <span>₹{gst.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm text-[#6B7280]">
                     <span>Delivery Charges</span>
                     <span>{deliveryCharges === 0 ? 'Free' : `₹${deliveryCharges.toFixed(2)}`}</span>
+                </div>
+                <div className="flex justify-between text-sm text-[#6B7280]">
+                    <span>GST (18%)</span>
+                    <span>₹{gst.toFixed(2)}</span>
                 </div>
                 {discount > 0 && (
                     <div className="flex justify-between text-sm text-green-600">
@@ -105,8 +111,6 @@ const OrderReviewSection: React.FC<OrderReviewSectionProps> = ({
                     <span>₹{total.toFixed(2)}</span>
                 </div>
             </div>
-
-            {/* ✅ PROCEED TO CHECKOUT BUTTON REMOVED */}
         </div>
     );
 };
