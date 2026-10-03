@@ -69,12 +69,25 @@ const CheckoutInteractive = () => {
         }
     }, [isHydrated, isAuthenticated, cartItems, router]);
 
+    // ✅ Read applied coupon persisted by the cart page
+    const appliedCoupon = (() => {
+        if (typeof window === 'undefined') return null;
+        try {
+            const raw = localStorage.getItem('appliedCoupon');
+            return raw ? JSON.parse(raw) : null;
+        } catch {
+            return null;
+        }
+    })();
+
     const subtotal = cartItems.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0);
-    const deliveryCharges = subtotal > 1000 ? 0 : 50;
-    const discount = 0;
-    // ✅ GST on (subtotal - discount + delivery), rounded to nearest rupee (India rules)
-    const gst = Math.round(((subtotal - discount + deliveryCharges) * 18) / 100);
-    const total = subtotal + gst + deliveryCharges - discount;
+    const discount = appliedCoupon?.discount_amount || 0;
+    const taxableAmount = subtotal - discount;
+    const deliveryCharges = taxableAmount > 1000 ? 0 : 50;
+    // ✅ GST is charged on (subtotal − coupon discount) only.
+    // Delivery charges are a separate service and are NOT part of the GST base.
+    const gst = Math.round((taxableAmount * 18) / 100);
+    const total = taxableAmount + gst + deliveryCharges;
 
     const handleAddressSelect = (address: Address) => {
         setSelectedAddress(address);
@@ -98,7 +111,7 @@ const CheckoutInteractive = () => {
         }
     };
 
-    // ===================== handlePlaceOrder =====================
+
     // ===================== handlePlaceOrder =====================
     const handlePlaceOrder = async () => {
         if (!termsAccepted) {
@@ -143,6 +156,8 @@ const CheckoutInteractive = () => {
                 deliveryCharges,
                 discount,
                 total,
+                coupon_id: appliedCoupon?.coupon_id || null,
+                coupon_code: appliedCoupon?.code || null,
             };
 
             // Create order

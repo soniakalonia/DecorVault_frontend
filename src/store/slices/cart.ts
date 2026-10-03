@@ -30,6 +30,8 @@ const initialState: CartState = {
   isOpen: false
 }
 
+
+
 const cartSlice = createSlice({
   name: 'cart',
   initialState,

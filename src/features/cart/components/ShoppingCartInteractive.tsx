@@ -292,6 +292,17 @@ export default function ShoppingCartInteractive() {
     setIsHydrated(true);
   }, []);
 
+  // ✅ Restore applied coupon from localStorage on mount
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = localStorage.getItem('appliedCoupon');
+      if (raw) setAppliedCoupon(JSON.parse(raw));
+    } catch {
+      localStorage.removeItem('appliedCoupon');
+    }
+  }, []);
+
   useEffect(() => {
     if (cartData?.success && Array.isArray(cartData.data)) {
       const items = cartData.data.map((item: any) => {
@@ -409,6 +420,9 @@ export default function ShoppingCartInteractive() {
   const handleClearCart = async () => {
     dispatch(clearCart());
     setAppliedCoupon(null);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('appliedCoupon');
+    }
     setIsClearModalOpen(false);
     try {
       await clearCartMutation(undefined).unwrap();
@@ -440,12 +454,18 @@ export default function ShoppingCartInteractive() {
       }).unwrap();
 
       setAppliedCoupon(res.data);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('appliedCoupon', JSON.stringify(res.data));
+      }
       toast.success(`Coupon applied — you saved ₹${res.data.discount_amount}`);
       return true;
     } catch (err: any) {
       const msg = err?.data?.message || 'Invalid coupon code';
       toast.error(msg);
       setAppliedCoupon(null);
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('appliedCoupon');
+      }
       return false;
     } finally {
       setCouponLoading(false);
@@ -454,6 +474,9 @@ export default function ShoppingCartInteractive() {
 
   const handleRemoveCoupon = () => {
     setAppliedCoupon(null);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('appliedCoupon');
+    }
     toast.info('Coupon removed');
   };
 
@@ -481,13 +504,11 @@ export default function ShoppingCartInteractive() {
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const couponDiscount = appliedCoupon?.discount_amount || 0;
-  const deliveryCharges = subtotal > 1000 ? 0 : 50;
+  const taxableAmount = subtotal - couponDiscount;
+  const deliveryCharges = taxableAmount > 1000 ? 0 : 50;
   const gstRate = 18;
-  // ✅ Math.round for nearest rupee (was Math.floor)
-  const gstAmount = Math.round(
-    ((subtotal - couponDiscount + deliveryCharges) * gstRate) / 100
-  );
-  const total = subtotal - couponDiscount + deliveryCharges + gstAmount;
+  const gstAmount = Math.round((taxableAmount * gstRate) / 100);
+  const total = taxableAmount + gstAmount + deliveryCharges;
 
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
