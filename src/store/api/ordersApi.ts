@@ -22,22 +22,33 @@ export interface AdminAnalyticsResponse {
     kpis: {
       totalRevenue: number
       totalOrders: number
+      todayOrders: number
+      paidOrders: number
+      pendingPaymentOrders: number
+      failedPaymentOrders: number
       conversionRate: number
       avgOrderValue: number
     }
-    monthlySalesData: Array<{
-      month: string
+    last7DaysRevenue: Array<{
+      day: string
+      date: string
       revenue: number
-      orders: number
-      refunds: number
     }>
     categoryData: Array<{
       name: string
       value: number
     }>
-    trafficSourceData: Array<{
-      source: string
-      visitors: number
+    statusBreakdown: Array<{
+      name: string
+      value: number
+    }>
+    todayOrdersList: Array<{
+      id: number
+      customer: string
+      total: number
+      payment_status: string
+      status: string
+      created_at: string
     }>
   }
 }

@@ -5,7 +5,6 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useGetAllOrdersQuery } from '@/store/api/ordersApi';
 import { useGetInventoryStatsQuery, useGetLowStockProductsQuery } from '@/store/api/productsApi';
 import { useGetAllUsersQuery } from '@/store/api/usersApi';
-import AnalyticsDashboard from '../analytics/AnalyticsDashboard';
 
 const AdminDashboardView = () => {
   const { user } = useAuth();
@@ -207,7 +206,6 @@ const AdminDashboardView = () => {
           </div>
         </div>
       </div>
-      <AnalyticsDashboard />
 
     </div>
   );

@@ -200,10 +200,10 @@ export default function ShoppingCartInteractive() {
     }
   };
 
-  const handleApplyPromo = (_code: string) => {
+  const handleApplyPromo = async (_code: string): Promise<boolean> => {
     // no-op
+    return false;
   };
-
   if (!isHydrated) {
     return (
       <div className="min-h-screen bg-[#FAFAFA]">

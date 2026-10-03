@@ -16,7 +16,7 @@ const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  
+
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -126,8 +126,8 @@ const Header = () => {
   // Normal Pages
   return (
     <header className={`sticky top-0 z-50 transition-all duration-300 ${
-      isScrolled 
-        ? 'bg-white/95 backdrop-blur-md shadow-sm' 
+      isScrolled
+        ? 'bg-white/95 backdrop-blur-md shadow-sm'
         : 'bg-white'
     }`}>
       <div className="container mx-auto px-4">
@@ -171,16 +171,16 @@ const Header = () => {
               />
             </div>
 
-            <Link 
-              href="/wishlist" 
+            <Link
+              href="/wishlist"
               className="p-2 rounded-full hover:bg-[#F0EDEA] transition-smooth"
               aria-label="Wishlist"
             >
               <Icon name="HeartIcon" size={20} className="text-[#1A1A2E]" />
             </Link>
 
-            <Link 
-              href="/cart" 
+            <Link
+              href="/cart"
               className="relative p-2 rounded-full hover:bg-[#F0EDEA] transition-smooth"
               aria-label="Cart"
             >
@@ -205,15 +205,15 @@ const Header = () => {
                   </button>
                   {isUserMenuOpen && (
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-[#E8E4E0] py-1 z-50">
-                      <Link 
-                        href={user?.role === 'admin' ? '/admin-dashboard/profile' : '/user-dashboard/profile'}
+                      <Link
+                        href={user?.role === 'admin' ? '/admin-dashboard' : '/user-dashboard'}
                         className="block px-4 py-2 text-sm text-[#1A1A2E] hover:bg-[#F0EDEA] transition-smooth"
                         onClick={() => setIsUserMenuOpen(false)}
                       >
-                        My Profile
+                        Dashboard
                       </Link>
-                      <Link 
-                        href="/user-dashboard/orders" 
+                      <Link
+                        href={user?.role === 'admin' ? '/admin-dashboard/orders' : '/user-dashboard/orders'}
                         className="block px-4 py-2 text-sm text-[#1A1A2E] hover:bg-[#F0EDEA] transition-smooth"
                         onClick={() => setIsUserMenuOpen(false)}
                       >

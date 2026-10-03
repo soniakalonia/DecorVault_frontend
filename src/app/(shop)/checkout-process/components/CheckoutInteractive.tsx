@@ -274,7 +274,7 @@ const CheckoutInteractive = () => {
                                     />
                                     <div className="mt-6 flex items-center justify-between">
                                         <button
-                                            onClick={() => router.push('/shopping-cart')}
+                                            onClick={() => router.push('/cart')}
                                             className="flex items-center space-x-2 text-sm font-medium text-muted-foreground transition-smooth hover:text-foreground"
                                         >
                                             <Icon name="ArrowLeftIcon" size={16} />
