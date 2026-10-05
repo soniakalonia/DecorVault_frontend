@@ -9,7 +9,6 @@ import WishlistItem from './WishlistItem';
 import AddressCard from './AddressCard';
 import RecommendedProduct from './RecommendedProduct';
 import ActivityFeedItem from './ActivityFeedItem';
-import ProfileSection from './ProfileSection';
 import Icon from '@/components/ui/AppIcon';
 import AdminSidebar from '../../admin-dashboard/components/AdminSidebar';
 import AdminDashboardView from '../../admin-dashboard/components/AdminDashboardView';
@@ -17,13 +16,6 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useGetProfileQuery } from '@/store/api/authApi';
 import { useGetUserOrdersQuery, useGetUserActivityQuery, useGetRecommendedProductsQuery, useGetUserAddressesQuery } from '@/store/api/orderApi';
 import { useGetWishlistQuery, useRemoveFromWishlistMutation } from '@/store/api/wishlistApi';
-
-interface ProfileData {
-  name: string;
-  email: string;
-  phone: string;
-  dateOfBirth: string;
-}
 
 const DashboardInteractive = () => {
   const router = useRouter();
@@ -59,7 +51,7 @@ const DashboardInteractive = () => {
     skip: !isLoggedIn,
   });
 
-  // Recommended Products - FIXED: Add error handling
+  // Recommended Products
   const {
     data: recommendedData,
     isLoading: recommendedLoading,
@@ -70,9 +62,8 @@ const DashboardInteractive = () => {
 
   const [removeFromWishlist] = useRemoveFromWishlistMutation();
 
-  const [activeTab, setActiveTab] = useState<'orders' | 'wishlist' | 'addresses' | 'profile'>(
-    'orders'
-  );
+  // ✅ Only 3 tabs — profile removed
+  const [activeTab, setActiveTab] = useState<'orders' | 'wishlist' | 'addresses'>('orders');
   const [mounted, setMounted] = useState(false);
 
   const user = profileDataResponse?.user || localUser;
@@ -82,7 +73,6 @@ const DashboardInteractive = () => {
     setMounted(true);
   }, []);
 
-  // Log error if any
   useEffect(() => {
     if (recommendedError) {
     }
@@ -171,7 +161,6 @@ const DashboardInteractive = () => {
     isDefault: Boolean(addr.is_default),
   }));
 
-  // Recommended products - Only use if no error and data exists
   const recommendedProducts = (!recommendedError && recommendedData?.products)
     ? (recommendedData.products || []).map((product: any) => ({
       id: String(product.id),
@@ -208,13 +197,6 @@ const DashboardInteractive = () => {
     timestamp: getTimeAgo(activity.timestamp),
   }));
 
-  const profileData: ProfileData = {
-    name: user?.fullName || 'User',
-    email: user?.email || '',
-    phone: user?.mobile || '',
-    dateOfBirth: '15/08/1985',
-  };
-
   const handleRemoveFromWishlist = async (productId: string) => {
     try {
       await removeFromWishlist(productId).unwrap();
@@ -227,27 +209,11 @@ const DashboardInteractive = () => {
     router.push('/shopping-cart');
   };
 
-  const handleEditAddress = (_addressId: string) => {
-    // Edit address logic
-  };
-
-  const handleDeleteAddress = (_addressId: string) => {
-    // Delete address logic
-  };
-
-  const handleSetDefaultAddress = (_addressId: string) => {
-    // Set default address logic
-  };
-
-  const handleSaveProfile = (_data: ProfileData) => {
-    // Save profile logic
-  };
-
+  // ✅ Only 3 tabs — no profile
   const tabs = [
     { id: 'orders' as const, label: 'Order History', icon: 'ShoppingBagIcon' },
     { id: 'wishlist' as const, label: 'Wishlist', icon: 'HeartIcon' },
     { id: 'addresses' as const, label: 'Addresses', icon: 'MapPinIcon' },
-    { id: 'profile' as const, label: 'Profile', icon: 'UserIcon' },
   ];
 
   return (
@@ -307,21 +273,23 @@ const DashboardInteractive = () => {
             </div>
 
             <div className="p-4 md:p-6">
+              {/* ✅ Order History — with scroll */}
               {activeTab === 'orders' && (
-                <div className="space-y-4">
+                <div>
                   <div className="mb-4 flex items-center justify-between">
                     <h2 className="font-heading text-xl font-semibold text-card-foreground">
                       Order History
                     </h2>
-                    <button className="flex items-center space-x-1 text-sm text-primary transition-smooth hover:text-primary/80">
-                      <Icon name="FunnelIcon" size={16} />
-                      <span>Filter</span>
-                    </button>
+                    <p className="caption text-muted-foreground">
+                      {orders.length} {orders.length === 1 ? 'order' : 'orders'}
+                    </p>
                   </div>
                   {orders.length > 0 ? (
-                    orders.map(order => (
-                      <OrderHistoryItem key={order.orderId} {...order} />
-                    ))
+                    <div className="max-h-[600px] space-y-4 overflow-y-auto pr-1">
+                      {orders.map(order => (
+                        <OrderHistoryItem key={order.orderId} {...order} />
+                      ))}
+                    </div>
                   ) : (
                     <p className="text-center text-muted-foreground py-8">No orders yet</p>
                   )}
@@ -353,37 +321,27 @@ const DashboardInteractive = () => {
                 </div>
               )}
 
+              {/* ✅ Addresses — no buttons, full width */}
               {activeTab === 'addresses' && (
                 <div>
                   <div className="mb-4 flex items-center justify-between">
                     <h2 className="font-heading text-xl font-semibold text-card-foreground">
                       Saved Addresses
                     </h2>
-                    <button className="flex items-center space-x-1 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-smooth hover:scale-[0.97]">
-                      <Icon name="PlusIcon" size={16} />
-                      <span>Add New</span>
-                    </button>
+                    <p className="caption text-muted-foreground">
+                      {addresses.length} {addresses.length === 1 ? 'address' : 'addresses'}
+                    </p>
                   </div>
                   {addresses.length > 0 ? (
-                    <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-4">
                       {addresses.map(address => (
-                        <AddressCard
-                          key={address.id}
-                          {...address}
-                          onEdit={() => handleEditAddress(address.id)}
-                          onDelete={() => handleDeleteAddress(address.id)}
-                          onSetDefault={() => handleSetDefaultAddress(address.id)}
-                        />
+                        <AddressCard key={address.id} {...address} />
                       ))}
                     </div>
                   ) : (
                     <p className="text-center text-muted-foreground py-8">No addresses saved</p>
                   )}
                 </div>
-              )}
-
-              {activeTab === 'profile' && (
-                <ProfileSection profileData={profileData} onSave={handleSaveProfile} />
               )}
             </div>
           </div>
@@ -405,7 +363,6 @@ const DashboardInteractive = () => {
             </div>
           </div>
 
-          {/* Recommended Section - Only show if no error and data exists */}
           {!recommendedError && recommendedProducts.length > 0 && (
             <div className="rounded-lg border border-border bg-card p-4 shadow-elevation-1">
               <div className="mb-4 flex items-center justify-between">
@@ -427,7 +384,6 @@ const DashboardInteractive = () => {
             </div>
           )}
 
-          {/* If error, show a simple message instead of error */}
           {recommendedError && (
             <div className="rounded-lg border border-border bg-card p-4 shadow-elevation-1">
               <h3 className="mb-2 font-heading text-lg font-semibold text-card-foreground">

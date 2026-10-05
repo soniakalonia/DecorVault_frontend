@@ -128,11 +128,28 @@ export default function AnalyticsDashboard() {
 
   const fallbackAnalytics = buildFallbackAnalytics();
   const useFallback = isError;
-  const analytics = useFallback ? fallbackAnalytics : data?.data;
+  const analytics: any = useFallback ? fallbackAnalytics : data?.data;
 
-  const monthlySalesData = analytics?.monthlySalesData || [];
+  // ✅ Derive dashboard-friendly shapes from whatever the API returns.
+  // Backend sends: last7DaysRevenue, categoryData, statusBreakdown, todayOrdersList, kpis
+  // Dashboard wants: monthlySalesData, categoryData, trafficSourceData
+  const monthlySalesData =
+    analytics?.monthlySalesData ??
+    (analytics?.last7DaysRevenue || []).map((r: any) => ({
+      month: r.day,
+      revenue: Number(r.revenue || 0),
+      orders: 0,
+      refunds: 0,
+    }));
+
   const categoryData = analytics?.categoryData || [];
-  const trafficSourceData = analytics?.trafficSourceData || [];
+
+  const trafficSourceData =
+    analytics?.trafficSourceData ??
+    (analytics?.statusBreakdown || []).map((r: any) => ({
+      source: r.name,
+      visitors: Number(r.value || 0),
+    }));
 
   if (isError && !ordersData && !ordersLoading) {
     return (
@@ -179,7 +196,7 @@ export default function AnalyticsDashboard() {
                   outerRadius={110}
                   label
                 >
-                  {categoryData.map((entry, index) => (
+                  {categoryData.map((entry: any, index: number) => (
                     <Cell key={entry.name} fill={pieColors[index % pieColors.length]} />
                   ))}
                 </Pie>
